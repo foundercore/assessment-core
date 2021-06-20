@@ -1,0 +1,50 @@
+Ssh to ec2
+	ssh -i key-testing-api-test.pem -L27016:localhost:27017  ec2-user@13.233.119.112
+
+DB copy 
+	mongodump --archive --db=flipper | mongorestore --archive  --nsFrom='flipper.*' --nsTo='assessment.*'
+
+
+	Clear Collections :
+		test_assignment   
+		test_submission
+		passage
+		question_paper
+		question
+		
+		Commands:
+			 db.test_assignment.remove({})
+			 db.test_submission.remove({})
+			 db.passage.remove({})
+			 db.question_paper.remove({})
+			 db.question.remove({})
+	
+
+	Export Collections
+		user 
+		student_batch
+		tenant
+	
+	
+	Backup and Restore strategy  - write a script to take the dump and put it in S3
+
+
+	Code Refactoring 
+
+	Code Upload to GIT 
+
+	Deployment Process
+
+	EC2 backup/snapshot needed? --- 
+
+
+	SSL for API and UI ? - letsencrypt 
+	
+	
+	Look for process running on server: 
+	ps -aef | grep flipper | grep -v grep
+	
+	To kill the api running on server 
+	kill -9 <process-id>
+	
+
