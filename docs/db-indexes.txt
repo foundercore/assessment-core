@@ -1,0 +1,19 @@
+db.user.createIndex({"email": 1}, {name: "user_idx2", background: true});
+db.student_batch.createIndex({"_id.tenantId": 1, "_id.batchId": 1}, {name: "student_batch_idx2", background: true});
+
+db.question.createIndex({"_id.tenantId": 1, "_id.questionId": 1}, {name: "question_idx2", background: true});
+db.question.createIndex({"_id.tenantId": 1, "type": 1}, {name: "question_idx3", background: true});
+db.question.createIndex({"_id.tenantId": 1, "tags": 1}, {name: "question_idx4", background: true});
+
+db.passage.createIndex({"_id.tenantId": 1, "_id.passageId": 1}, {name: "passage_idx2", background: true});
+
+db.question_paper.createIndex({"_id.tenantId": 1, "_id.questionPaperId": -1}, {name: "question_paper_idx2", background: true});
+db.question_paper.createIndex({"_id.tenantId": 1, "status": 1, "lastUpdatedOn": -1}, {name: "question_paper_idx3", background: true});
+
+db.test_assignment.createIndex({"_id.tenantId": 1, "_id.assignmentId": -1}, {name: "test_assignment_idx2", background: true});
+db.test_assignment.createIndex({"_id.tenantId": 1, "testId": -1, "lastUpdatedOn": -1}, {name: "test_assignment_idx3", background: true});
+
+db.test_submission.createIndex({"_id.tenantId": 1, "_id.submissionId": -1}, {name: "test_submission_idx2", background: true});
+db.test_submission.createIndex({"_id.tenantId": 1, "studentId": 1}, {name: "test_submission_idx3", background: true});
+db.test_submission.createIndex({"_id.tenantId": 1, "assignmentId": 1}, {name: "test_submission_idx4", background: true});
+db.test_submission.createIndex({"_id.tenantId": 1, "submitted": 1, "evaluation": 1}, {name: "test_submission_idx5", background: true});

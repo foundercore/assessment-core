@@ -1,0 +1,15 @@
+{
+  "address": "Kolkata",
+  "displayName": "ramraj",
+  "email": "patel.ramraj2@gmail.com",
+  "enabled": true,
+  "firstName": "Ramraj",
+  "gender": "M",
+  "lastName": "Patel",
+  "password": "Gamma@231",
+  "roles": [
+    "ROLE_USER"
+  ],
+  "state": "WB",
+  "userName": "ramraj@demo.com"
+}

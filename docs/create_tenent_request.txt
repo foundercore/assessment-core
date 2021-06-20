@@ -1,0 +1,10 @@
+{
+  "defaultUserEmail": "test@demo.com",
+  "defaultUserPassword": "Pass@123",
+  "displayName": "Demo Organisation",
+  "id": "demo.com"
+}
+
+login into tenent
+user - admin@demo.com
+password - Pass@123

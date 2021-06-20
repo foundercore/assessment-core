@@ -1,0 +1,25 @@
+// login credentials: username - admin@assessment.com, password - Pass@123
+
+db.tenant.insertOne({
+	"_id":"assessment.com",
+	"displayName":"Endeavor, LLC",
+	"enabled": true,
+	"creation_date":ISODate("2021-04-17T08:49:10.589Z")
+});
+
+db.user.insertOne(
+{
+	"_id" : "admin@assessment.com",
+	"password" : "$2a$10$R6NuUfOozoqvTrfP9S/AS.DarUjm5r62ECRZJDH0latDJjEm8XQSu",
+	"displayName" : "Assessment Admin",
+	"enabled" : true,
+	"email" : "admin@assessment.com",
+	"firstName" : "Admin",
+	"lastName" : "Admin",
+	"lastUpdatedOn" : ISODate("2021-04-17T08:49:10.589Z"),
+	"lastUpdatedBy" : "admin@assessment.com",
+	"roles" : [
+		"ROLE_SUPER_ADMIN"
+	],
+	"_class" : "com.assessment.iam.entities.User"
+});

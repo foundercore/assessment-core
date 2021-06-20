@@ -1,0 +1,4 @@
+Config Management
+. different type of config to store into db
+. then exposed it via api
+. support CRUD operations on individual entity
