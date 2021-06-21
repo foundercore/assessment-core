@@ -18,11 +18,18 @@ Install Lombok on windows machine. Refer : https://www.baeldung.com/lombok-ide .
 	
 
 Local Build :
+	Go to project folder
 	Run : `mvn clean && mvn package`
 	Copy jar file to server folder : /home/ec2-user/repo/assessment
 	Connect to Ec2 server using putty
 	Go to directory /home/ec2-user/repo/assessment
 	Run command : nohup java -Xms250m -Xmx300m -jar assessment-core-0.0.1-SNAPSHOT.jar &
+	
+
+Start Mongo Db on the server:
+	sudo systemctl start mongod
+
+	
 	
 
 
