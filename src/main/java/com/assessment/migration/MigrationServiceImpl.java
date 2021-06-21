@@ -1,5 +1,18 @@
 package com.assessment.migration;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.assessment.common.FileUtility;
 import com.assessment.common.XLWriter;
 import com.assessment.iam.commons.AuthUtils;
@@ -10,20 +23,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Files;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -80,6 +79,7 @@ public class MigrationServiceImpl implements MigrationService {
 
             log.info("Migration Successful. Input - {}, Output - {}", tempFile.getName(), output.getAbsolutePath());
         } catch (Exception e) {
+        	log.error("Unable to process file - {}", tempFile.getName());
             throw e;
         } finally {
             if (tempFile != null && tempFile.exists()){
@@ -168,6 +168,7 @@ public class MigrationServiceImpl implements MigrationService {
         }
         return result;
     }
+
 
     private String convertQuestionSchema(MigrationInSchema schema, int maxOptionCount) {
         StringBuilder content = new StringBuilder();

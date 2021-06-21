@@ -142,7 +142,7 @@ public class MigrationQuestion {
         Map<String, Object> record = new LinkedHashMap<>();
 
         if (QuestionType.TITA.value().equalsIgnoreCase(this.type)){
-            record.put("name", StringUtility.html2text(this.question, removeHtmlContent) + " " + StringUtility.html2text(isNullThenEmpty(this.passage), removeHtmlContent));
+            record.put("name", getTitaQuestionName(removeHtmlContent));
         }else{
             record.put("name", StringUtility.html2text(this.question, removeHtmlContent));
         }
@@ -222,6 +222,10 @@ public class MigrationQuestion {
 
         return record;
     }
+
+	private String getTitaQuestionName(boolean removeHtmlContent) {
+		return StringUtility.html2text(this.question, removeHtmlContent).replaceAll("\\[quizky-text\\]", "") + " " + StringUtility.html2text(isNullThenEmpty(this.passage), removeHtmlContent);
+	}
 
     public String isNullThenEmpty(String value){
         return value == null ? "": value;
