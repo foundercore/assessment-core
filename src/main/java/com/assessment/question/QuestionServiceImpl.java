@@ -2,7 +2,11 @@ package com.assessment.question;
 
 import com.assessment.common.*;
 import com.assessment.iam.commons.AuthUtils;
+import com.assessment.questionpaper.TestConfigRepository;
 import com.assessment.questionpaper.dto.QuestionPaperStatus;
+import com.assessment.questionpaper.entity.QuestionPaper;
+import com.assessment.questionpaper.entity.QuestionPaper.PaperSection;
+import com.assessment.questionpaper.entity.QuestionPaperId;
 import com.google.common.io.Files;
 import com.opencsv.exceptions.CsvValidationException;
 
@@ -26,6 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -36,6 +41,9 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Autowired
     private PassageRepository passageRepository;
+    
+    @Autowired
+    TestConfigRepository testConfigRepository;
 
     @Autowired
     private Validator validator;
@@ -565,12 +573,31 @@ public class QuestionServiceImpl implements QuestionService {
         if (filter.getPageNumber() <= 0){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Invalid page number - %s", filter.getPageNumber()));
         }
+        
+        List<String> exclusionQuestionId = new ArrayList<>();
+        if(StringUtils.isNotBlank(filter.getTestIdToBeExcluded())) {
+        	QuestionPaperId id = new QuestionPaperId();
+            id.setTenantId(AuthUtils.getCurrentTenantId());
+            id.setQuestionPaperId(filter.getTestIdToBeExcluded());
+            QuestionPaper questionPaperToExclude = testConfigRepository.findById(id).orElse(null);
+            if(questionPaperToExclude != null ) {
+            	for (PaperSection section : questionPaperToExclude.getSections().values()) {
+            		section.getQuestions().values()
+            		.forEach(e -> exclusionQuestionId.add(e.getId()));
+				}
+            }
+        }
+        
         Query query = new Query();
 
         List<Criteria> criterias = new ArrayList<>();
 
         if (StringUtils.isNotEmpty(filter.getQuestionId())){
             criterias.add(Criteria.where("_id.questionId").is(filter.getQuestionId()));
+        }
+        
+        if(!exclusionQuestionId.isEmpty()) {
+        	criterias.add(Criteria.where("_id.questionId").nin(exclusionQuestionId));
         }
         if (StringUtils.isNotEmpty(filter.getType())){
             criterias.add(Criteria.where("type").is(filter.getType()));
