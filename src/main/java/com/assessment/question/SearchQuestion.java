@@ -27,6 +27,9 @@ public class SearchQuestion {
     /* sorting details */
     private String sortColumn;
     private String sortOrder;
+    
+    /* Exclude question from test */
+    private String testIdToBeExcluded;
 
     /* pagination specific */
     private boolean next = true;

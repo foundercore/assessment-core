@@ -42,7 +42,7 @@ DB copy
 	
 	
 	Look for process running on server: 
-	ps -aef | grep flipper | grep -v grep
+	ps -aef | grep assessment | grep -v grep
 	
 	To kill the api running on server 
 	kill -9 <process-id>
