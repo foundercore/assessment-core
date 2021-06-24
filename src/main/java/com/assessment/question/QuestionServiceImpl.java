@@ -582,8 +582,11 @@ public class QuestionServiceImpl implements QuestionService {
             QuestionPaper questionPaperToExclude = testConfigRepository.findById(id).orElse(null);
             if(questionPaperToExclude != null ) {
             	for (PaperSection section : questionPaperToExclude.getSections().values()) {
-            		section.getQuestions().values()
-            		.forEach(e -> exclusionQuestionId.add(e.getId()));
+            		if(section!= null && 
+            				section.getQuestions()!= null 
+            				&& section.getQuestions().size() > 0)
+	            		section.getQuestions().values()
+	            		.forEach(e -> exclusionQuestionId.add(e.getId()));
 				}
             }
         }
