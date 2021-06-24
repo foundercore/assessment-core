@@ -90,8 +90,8 @@ public class TestAssignmentController {
      */
     @GetMapping("/by-email/{email-id}/list")
     @PreAuthorize("hasAnyRole('ROLE_TENANT_ADMIN', 'ROLE_USER_ADMIN', 'ROLE_STAFF')")
-    public List<AssignmentResponseDto> listStudentAssignmentsByEmail(@NotBlank @PathVariable("email-id") String emailId){
-        return service.listStudentAssignmentsByEmail(emailId);
+    public List<AssignmentResponseDto> listAssignmentsByEmail(@NotBlank @PathVariable("email-id") String emailId){
+        return service.listAssignmentsByEmail(emailId);
     }
 
     @GetMapping("/by-name/{username}/list")

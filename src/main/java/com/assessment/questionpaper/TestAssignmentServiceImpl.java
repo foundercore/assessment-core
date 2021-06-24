@@ -13,6 +13,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.assessment.common.DateUtility;
 import com.assessment.iam.commons.AuthUtils;
+import com.assessment.iam.dtos.AppRole;
 import com.assessment.iam.entities.User;
 import com.assessment.iam.services.TenantService;
 import com.assessment.iam.services.UserService;
@@ -217,12 +218,14 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
     }
 
     @Override
-    public List<AssignmentResponseDto> listStudentAssignmentsByEmail(String emailId) {
+    public List<AssignmentResponseDto> listAssignmentsByEmail(String emailId) {
         /* get student details */
         User student = userService.getUserByEmail(emailId);
-
-        /* get student associated batches */
-        List<StudentBatch> batches = studentBatchService.studentAssociatedBatches(emailId);
+        /* get student associated batches. Should not be done for any other role as Batches will only have students. */
+        List<StudentBatch> batches  = null;
+        if(student.getRoles().contains(AppRole.ROLE_STUDENT.value())) {
+        	batches = studentBatchService.studentAssociatedBatches(emailId);
+        }
 
         /* batch condition */
         Criteria batch = null;
@@ -282,13 +285,13 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
     @Override
     public List<AssignmentResponseDto> listStudentAssignmentsByUsername(String username) {
         User user = userService.getUser(username).orElseThrow(()-> new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("User %s does not exist", username)));
-        return listStudentAssignmentsByEmail(user.getEmail());
+        return listAssignmentsByEmail(user.getEmail());
     }
 
     @Override
     public List<AssignmentResponseDto> listMyAssignments() {
         User user = userService.getLoggedInUserDetails();
-        return listStudentAssignmentsByEmail(user.getEmail());
+        return listAssignmentsByEmail(user.getEmail());
     }
 
     @Override

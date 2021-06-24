@@ -24,7 +24,7 @@ public interface TestAssignmentService {
 
     AssignmentResponseDto getAssignment(String assignmentId);
 
-    List<AssignmentResponseDto> listStudentAssignmentsByEmail(String emailId);
+    List<AssignmentResponseDto> listAssignmentsByEmail(String emailId);
 
     List<AssignmentResponseDto> listMyAssignments();
 
