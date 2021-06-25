@@ -779,6 +779,7 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
                         if ((answer.getOptions() == null || answer.getOptions().isEmpty()) && StringUtils.isEmpty(answer.getAnswerText())){
                             /* mark as skipped question */
                             answer.setAnswerStatus(AnswerState.SKIPPED.value());
+                            answer.setTimeElapsedInSec(0);
                             answer.setMarkAllocated(questionDto.getSkipMark() * -1);
                         }else {
                             /* mark as correct/in-correct question */
@@ -820,6 +821,7 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
                         Submission.Answer object = new Submission.Answer();
                         object.setQuestionId(questionDto.getId());
                         object.setAnswerStatus(AnswerState.SKIPPED.value());
+                        object.setTimeElapsedInSec(0);
                         object.setMarkAllocated(questionDto.getSkipMark() * -1);
                         if (!missing.containsKey(section.getSectionId())){
                             missing.put(section.getSectionId(), new ArrayList<>());
@@ -835,6 +837,7 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
                     Submission.Answer object = new Submission.Answer();
                     object.setQuestionId(questionDto.getId());
                     object.setAnswerStatus(AnswerState.SKIPPED.value());
+                    object.setTimeElapsedInSec(0);
                     object.setMarkAllocated(questionDto.getSkipMark() * -1);
                     if (!missing.containsKey(sectionDto.getId())){
                         missing.put(sectionDto.getId(), new ArrayList<>());
