@@ -1,4 +1,4 @@
-package com.assessment.questionpaper;
+package com.assessment.questionpaper.config;
 
 import org.springframework.validation.annotation.Validated;
 

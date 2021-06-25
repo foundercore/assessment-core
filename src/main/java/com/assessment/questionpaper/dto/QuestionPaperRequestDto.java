@@ -1,10 +1,11 @@
 package com.assessment.questionpaper.dto;
 
-import lombok.Data;
+import java.util.List;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.util.List;
+
+import lombok.Data;
 
 @Data
 public class QuestionPaperRequestDto {

@@ -1,18 +1,22 @@
 package com.assessment.question;
 
-import com.assessment.common.*;
-import com.assessment.iam.commons.AuthUtils;
-import com.assessment.questionpaper.TestConfigRepository;
-import com.assessment.questionpaper.dto.QuestionPaperStatus;
-import com.assessment.questionpaper.entity.QuestionPaper;
-import com.assessment.questionpaper.entity.QuestionPaper.PaperSection;
-import com.assessment.questionpaper.entity.QuestionPaperId;
-import com.google.common.io.Files;
-import com.opencsv.exceptions.CsvValidationException;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.regex.Pattern;
 
-import lombok.extern.slf4j.Slf4j;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import javax.validation.Validator;
+
 import org.apache.commons.lang3.StringUtils;
-import org.checkerframework.checker.units.qual.C;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -23,14 +27,22 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
-import javax.validation.Validator;
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import com.assessment.common.CsvFileDecoder;
+import com.assessment.common.FileUtility;
+import com.assessment.common.IFileDecoder;
+import com.assessment.common.StringUtility;
+import com.assessment.common.TimeUtility;
+import com.assessment.common.XLReader;
+import com.assessment.iam.commons.AuthUtils;
+import com.assessment.questionpaper.config.TestConfigRepository;
+import com.assessment.questionpaper.dto.QuestionPaperStatus;
+import com.assessment.questionpaper.entity.QuestionPaper;
+import com.assessment.questionpaper.entity.QuestionPaper.PaperSection;
+import com.assessment.questionpaper.entity.QuestionPaperId;
+import com.google.common.io.Files;
+import com.opencsv.exceptions.CsvValidationException;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -393,35 +405,46 @@ public class QuestionServiceImpl implements QuestionService {
         }
         validateQuestion(question);
 
+		boolean isQuestionAssocatedToNonDraftQuestionPaper = false;
         /* check if question part of verified/published/archived question-paper */
         if (currentQuestion.getUsedInPapers() != null){
             for (Map.Entry<String, String> entry: currentQuestion.getUsedInPapers().entrySet()){
                 String paperId = entry.getKey();
                 String status = entry.getValue();
                 if (!QuestionPaperStatus.DRAFT.value().equalsIgnoreCase(status)){
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                            String.format("Can't update question with id %s. It is part of %s question-paper %s", question.getId().getQuestionId(), status, paperId));
+					isQuestionAssocatedToNonDraftQuestionPaper = true;
+					break;
+					// throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+					// String.format("Can't update question with id %s. It is part of %s
+					// question-paper %s",
+					// question.getId().getQuestionId(), status, paperId));
+
                 }
             }
         }
 
         /* build question modal & save */
-        currentQuestion.setName(question.getName());
-        currentQuestion.setDescription(question.getDescription());
-        currentQuestion.setType(question.getType());
-        currentQuestion.setSubject(question.getSubject());
-        currentQuestion.setPassageId(question.getPassageId());
-        currentQuestion.setPassageContent(question.getPassageContent());
-        currentQuestion.setOptions(question.getOptions());
-        currentQuestion.setTags(question.getTags());
-        currentQuestion.setAnswer(question.getAnswer());
-        currentQuestion.setPositiveMark(question.getPositiveMark());
-        currentQuestion.setNegativeMark(question.getNegativeMark());
-        currentQuestion.setSkipMark(question.getSkipMark());
+		// if question is associated to a test which is not in Draft State , do not
+		// update these fields
+		if (!isQuestionAssocatedToNonDraftQuestionPaper) {
+			currentQuestion.setName(question.getName());
+			currentQuestion.setDescription(question.getDescription());
+			currentQuestion.setType(question.getType());
+			currentQuestion.setPassageId(question.getPassageId());
+			currentQuestion.setPassageContent(question.getPassageContent());
+			currentQuestion.setOptions(question.getOptions());
+			currentQuestion.setAnswer(question.getAnswer());
+			currentQuestion.setPositiveMark(question.getPositiveMark());
+			currentQuestion.setNegativeMark(question.getNegativeMark());
+			currentQuestion.setSkipMark(question.getSkipMark());
+			currentQuestion.setReference(question.getReference());
+			currentQuestion.setExplanation(question.getExplanation());
+		}
         currentQuestion.setTopic(question.getTopic());
         currentQuestion.setSubTopic(question.getSubTopic());
-        currentQuestion.setReference(question.getReference());
-        currentQuestion.setExplanation(question.getExplanation());
+		currentQuestion.setTags(question.getTags());
+		currentQuestion.setSubject(question.getSubject());
+		currentQuestion.setDifficultyLevel(question.getDifficultyLevel());
 
         questionRepository.save(currentQuestion);
     }
