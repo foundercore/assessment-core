@@ -22,4 +22,6 @@ public class UserResponseDto {
     private Date lastUpdatedOn;
     private String lastUpdatedBy;
     Set<String> roles = new HashSet<>();
+    private boolean acceptedTerms;
+    private Date acceptedTermsOn;
 }

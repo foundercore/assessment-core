@@ -72,6 +72,10 @@ public class UserController {
         user.setGender(userCreateRequestDto.getGender());
         user.setAddress(userCreateRequestDto.getAddress());
         user.setState(userCreateRequestDto.getState());
+        if(userCreateRequestDto.isAcceptedTerms()) {
+        	user.setAcceptedTerms(userCreateRequestDto.isAcceptedTerms());
+        	user.setAcceptedTermsOn(new Date());
+        }
         if (userCreateRequestDto.getRoles() != null && !userCreateRequestDto.getRoles().isEmpty()){
             user.setRoles(userCreateRequestDto.getRoles());
         }else {
@@ -310,6 +314,9 @@ public class UserController {
         userResponseDto.setLastUpdatedOn(user.getLastUpdatedOn());
         userResponseDto.setLastUpdatedBy(user.getLastUpdatedBy());
         userResponseDto.setRoles(user.getRoles());
+        userResponseDto.setAcceptedTerms(user.isAcceptedTerms());
+        userResponseDto.setAcceptedTermsOn(user.getAcceptedTermsOn());
+        
         return userResponseDto;
     }
 }

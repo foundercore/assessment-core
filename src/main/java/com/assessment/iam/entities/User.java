@@ -1,6 +1,7 @@
 package com.assessment.iam.entities;
 
 import org.apache.commons.lang3.StringUtils;
+import org.checkerframework.common.value.qual.BoolVal;
 import org.springframework.data.annotation.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -60,6 +61,12 @@ public class User implements UserDetails {
     @NotNull
     @NotEmpty
     Set<@NotBlank @Size(max = 100) String> roles = new HashSet<>();
+    
+    
+    private boolean acceptedTerms;
+    
+    private Date acceptedTermsOn;
+    
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -194,4 +201,23 @@ public class User implements UserDetails {
     public void setState(String state) {
         this.state = state;
     }
+
+	public boolean isAcceptedTerms() {
+		return acceptedTerms;
+	}
+
+	public void setAcceptedTerms(boolean acceptedTerms) {
+		this.acceptedTerms = acceptedTerms;
+	}
+
+	public Date getAcceptedTermsOn() {
+		return acceptedTermsOn;
+	}
+
+	public void setAcceptedTermsOn(Date acceptedTermsOn) {
+		this.acceptedTermsOn = acceptedTermsOn;
+	}
+
+	
+    
 }
