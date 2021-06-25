@@ -51,4 +51,6 @@ public class UserCreateRequestDto {
     private String state;
 
     Set<@Size(max = 100) String> roles = new HashSet<>();
+    
+    private boolean acceptedTerms = false;
 }
