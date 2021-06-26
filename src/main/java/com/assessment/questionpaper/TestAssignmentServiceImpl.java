@@ -547,6 +547,7 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
                             dto.setType(questionMap.get(qid).getType());
                             dto.setCorrectAnswerText(questionMap.get(qid).getAnswer().getAnswerText());
                             dto.setCorrectOptions(questionMap.get(qid).getAnswer().getOptions());
+                            dto.setExplanation(questionMap.get(qid).getExplanation());
                             if (questionMap.get(qid).getOptions() != null){
                                 List<SubmissionResponseDto.InputOption> options = new ArrayList<>();
                                 for (Question.QuestionOption op: questionMap.get(qid).getOptions()){
