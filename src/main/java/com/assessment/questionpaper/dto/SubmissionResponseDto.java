@@ -63,6 +63,7 @@ public class SubmissionResponseDto {
         private String answerStatus;
         private int timeElapsedInSec;
         private boolean markForReview;
+        private String explanation;
     }
 
     @Data

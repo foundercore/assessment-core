@@ -547,6 +547,7 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
                             dto.setType(questionMap.get(qid).getType());
                             dto.setCorrectAnswerText(questionMap.get(qid).getAnswer().getAnswerText());
                             dto.setCorrectOptions(questionMap.get(qid).getAnswer().getOptions());
+                            dto.setExplanation(questionMap.get(qid).getExplanation());
                             if (questionMap.get(qid).getOptions() != null){
                                 List<SubmissionResponseDto.InputOption> options = new ArrayList<>();
                                 for (Question.QuestionOption op: questionMap.get(qid).getOptions()){
@@ -781,6 +782,7 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
                             answer.setAnswerStatus(AnswerState.SKIPPED.value());
                             answer.setTimeElapsedInSec(0);
                             answer.setMarkAllocated(questionDto.getSkipMark() * -1);
+                            answer.setTotalMark(questionDto.getPositiveMark());
                         }else {
                             /* mark as correct/in-correct question */
                             if (QuestionType.MCQ.value().equalsIgnoreCase(questionDto.getType())
@@ -823,6 +825,7 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
                         object.setAnswerStatus(AnswerState.SKIPPED.value());
                         object.setTimeElapsedInSec(0);
                         object.setMarkAllocated(questionDto.getSkipMark() * -1);
+                        object.setTotalMark(questionDto.getPositiveMark());
                         if (!missing.containsKey(section.getSectionId())){
                             missing.put(section.getSectionId(), new ArrayList<>());
                         }
@@ -839,6 +842,7 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
                     object.setAnswerStatus(AnswerState.SKIPPED.value());
                     object.setTimeElapsedInSec(0);
                     object.setMarkAllocated(questionDto.getSkipMark() * -1);
+                    object.setTotalMark(questionDto.getPositiveMark());
                     if (!missing.containsKey(sectionDto.getId())){
                         missing.put(sectionDto.getId(), new ArrayList<>());
                     }
