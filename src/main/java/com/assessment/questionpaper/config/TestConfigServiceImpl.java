@@ -249,9 +249,7 @@ public class TestConfigServiceImpl implements TestConfigService {
         if (QuestionPaperStatus.DELETED.value().equalsIgnoreCase(questionPaper.getStatus())){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Question paper %s does not exist.", paperId));
         }
-        if (!QuestionPaperStatus.DRAFT.value().equalsIgnoreCase(questionPaper.getStatus())){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Can't update question paper %s. Status not draft.", paperId));
-        }
+
         if (dto.getTotalDurationInMinutes() <= 0){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("totalDurationInMinutes %s can't be negative/zero", dto.getTotalDurationInMinutes()));
         }
@@ -261,9 +259,7 @@ public class TestConfigServiceImpl implements TestConfigService {
         if (dto.getMinimumDurationInMinutes() <= 0){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("minimumDurationInMinutes %s can't be negative/zero", dto.getMinimumDurationInMinutes()));
         }
-//        if (dto.getMinimumDurationInMinutes() > dto.getTotalDurationInMinutes()){
-//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("minimumDurationInMinutes should be less than totalDurationInMinutes", dto.getMinimumDurationInMinutes()));
-//        }
+
 
         if (StringUtils.isNotEmpty(dto.getName())){
             questionPaper.setName(dto.getName());
@@ -292,7 +288,6 @@ public class TestConfigServiceImpl implements TestConfigService {
         if (dto.getSectionOrder() != null && !dto.getSectionOrder().isEmpty()){
             questionPaper.setSectionOrder(dto.getSectionOrder());
         }
-
 		questionPaper.setCalculatorRequired(dto.isCalculatorRequired());
 
         testConfigRepository.save(questionPaper);
