@@ -1,6 +1,14 @@
 package com.assessment.questionpaper.entity;
 
-import lombok.Data;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -8,9 +16,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.assessment.questionpaper.dto.QuestionPaperResponseDto;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-import java.util.*;
+import lombok.Data;
 
 @Data
 @Document(collection = QuestionPaper.COLLECTION_NAME)
@@ -51,6 +57,8 @@ public class QuestionPaper {
 
     /* flow control parameters */
     TestControlParams controlParam;
+
+	private boolean calculatorRequired;
 
     public void addTags(String fileName) {
         if (this.tags == null) this.tags = new ArrayList<>();
