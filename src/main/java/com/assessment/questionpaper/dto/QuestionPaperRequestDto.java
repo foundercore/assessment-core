@@ -24,7 +24,7 @@ public class QuestionPaperRequestDto {
 
     List<PaperSectionRequestDto> sections;
     List<String> sectionOrder;
-
+	private boolean calculatorRequired = true;
     private List<String> tags;
 
     @Data
