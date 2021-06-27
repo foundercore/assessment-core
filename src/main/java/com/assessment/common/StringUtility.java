@@ -1,14 +1,15 @@
 package com.assessment.common;
 
-import net.openhft.hashing.LongHashFunction;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.jsoup.Jsoup;
-
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Jsoup;
+
+import net.openhft.hashing.LongHashFunction;
 
 public class StringUtility {
 
@@ -19,6 +20,10 @@ public class StringUtility {
     public static boolean isNullOrEmpty(String s) {
         return s == null || s.trim().isEmpty();
     }
+
+	public String isNullThenEmpty(String value) {
+		return value == null ? "" : value;
+	}
 
     public static String generateCommonLangPassword() {
         String upperCaseLetters = RandomStringUtils.random(2, 65, 90, true, true);
@@ -48,6 +53,8 @@ public class StringUtility {
     }
 
     public static String html2text(String html) {
+		if (html == null)
+			return StringUtils.EMPTY;
         return Jsoup.parse(html).text();
     }
 
