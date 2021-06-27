@@ -1,6 +1,18 @@
 package com.assessment.questionpaper.config;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import javax.validation.Validator;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -17,14 +29,15 @@ import com.assessment.iam.commons.AuthUtils;
 import com.assessment.iam.dtos.AppRole;
 import com.assessment.question.Question;
 import com.assessment.question.QuestionService;
-import com.assessment.questionpaper.dto.*;
+import com.assessment.questionpaper.dto.QuestionPaperPaginatedResponse;
+import com.assessment.questionpaper.dto.QuestionPaperRequestDto;
+import com.assessment.questionpaper.dto.QuestionPaperResponseDto;
+import com.assessment.questionpaper.dto.QuestionPaperStatus;
+import com.assessment.questionpaper.dto.SearchQuestionPaperDto;
 import com.assessment.questionpaper.entity.QuestionPaper;
 import com.assessment.questionpaper.entity.QuestionPaperId;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
-import javax.validation.Validator;
-import java.util.*;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -279,6 +292,9 @@ public class TestConfigServiceImpl implements TestConfigService {
         if (dto.getSectionOrder() != null && !dto.getSectionOrder().isEmpty()){
             questionPaper.setSectionOrder(dto.getSectionOrder());
         }
+
+		questionPaper.setCalculatorRequired(dto.isCalculatorRequired());
+
         testConfigRepository.save(questionPaper);
     }
 
@@ -870,6 +886,7 @@ public class TestConfigServiceImpl implements TestConfigService {
         dto.setCreatedOn(qp.getCreatedOn());
         dto.setLastUpdatedBy(qp.getLastUpdatedBy());
         dto.setLastUpdatedOn(qp.getLastUpdatedOn());
+		dto.setCalculatorRequired(qp.isCalculatorRequired());
         if (qp.getControlParam() != null) {
             dto.setControlParam(qp.getControlParam().toResponseDto());
         }
