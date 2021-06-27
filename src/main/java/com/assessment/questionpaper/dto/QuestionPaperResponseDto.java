@@ -1,10 +1,10 @@
 package com.assessment.questionpaper.dto;
 
-import lombok.Data;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import lombok.Data;
 
 @Data
 public class QuestionPaperResponseDto {
@@ -36,6 +36,8 @@ public class QuestionPaperResponseDto {
 
     /* test control params */
     TestControlParamsResponseDto controlParam;
+
+	private boolean calculatorRequired;
 
     public void addTags(String fileName) {
         if (this.tags == null) this.tags = new ArrayList<>();

@@ -1,6 +1,15 @@
 package com.assessment.questionpaper;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import javax.validation.Validator;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -12,24 +21,34 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.assessment.common.DateUtility;
+import com.assessment.common.StringUtility;
 import com.assessment.iam.commons.AuthUtils;
 import com.assessment.iam.dtos.AppRole;
 import com.assessment.iam.entities.User;
-import com.assessment.iam.services.TenantService;
 import com.assessment.iam.services.UserService;
 import com.assessment.question.DifficultyLevel;
 import com.assessment.question.Question;
 import com.assessment.question.QuestionService;
 import com.assessment.question.QuestionType;
 import com.assessment.questionpaper.config.TestConfigService;
-import com.assessment.questionpaper.dto.*;
-import com.assessment.questionpaper.entity.*;
+import com.assessment.questionpaper.dto.AnswerState;
+import com.assessment.questionpaper.dto.AssignmentRequestDto;
+import com.assessment.questionpaper.dto.AssignmentResponseDto;
+import com.assessment.questionpaper.dto.EvaluationState;
+import com.assessment.questionpaper.dto.QuestionPaperResponseDto;
+import com.assessment.questionpaper.dto.QuestionPaperStatus;
+import com.assessment.questionpaper.dto.SaveAnswerRequestDto;
+import com.assessment.questionpaper.dto.SubmissionResponseDto;
+import com.assessment.questionpaper.entity.Assignment;
+import com.assessment.questionpaper.entity.AssignmentId;
+import com.assessment.questionpaper.entity.Metric;
+import com.assessment.questionpaper.entity.QuestionPaper;
+import com.assessment.questionpaper.entity.Submission;
+import com.assessment.questionpaper.entity.SubmissionId;
 import com.assessment.studentbatch.StudentBatch;
 import com.assessment.studentbatch.StudentBatchService;
 
-import javax.validation.Validator;
-import java.util.*;
-import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -809,7 +828,10 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
                                     answer.setAnswerStatus(AnswerState.INCORRECT.value());
                                 }
                             }else if (QuestionType.TITA.value().equalsIgnoreCase(questionDto.getType())){
-                                if (questionMap.get(questionDto.getId()).getAnswer().getAnswerText().equalsIgnoreCase(answer.getAnswerText())){
+								if (StringUtility
+										.html2text(questionMap.get(questionDto.getId()).getAnswer().getAnswerText(),
+												true)
+										.equalsIgnoreCase(answer.getAnswerText())) {
                                     answer.setMarkAllocated(questionDto.getPositiveMark());
                                     answer.setAnswerStatus(AnswerState.CORRECT.value());
                                 }else {
