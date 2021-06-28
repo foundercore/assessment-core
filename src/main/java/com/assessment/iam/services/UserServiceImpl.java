@@ -1,16 +1,21 @@
 package com.assessment.iam.services;
 
-import com.assessment.common.*;
-import com.assessment.iam.commons.AuthUtils;
-import com.assessment.iam.dtos.AppRole;
-import com.assessment.iam.dtos.UserUpdateRequestDto;
-import com.assessment.iam.entities.Tenant;
-import com.assessment.iam.entities.User;
-import com.assessment.iam.exceptions.TenantInActiveException;
-import com.assessment.iam.exceptions.TenantNotFoundException;
-import com.assessment.iam.repositories.UserRepository;
-import com.google.common.io.Files;
-import com.opencsv.exceptions.CsvValidationException;
+import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+
+import javax.mail.MessagingException;
+import javax.validation.constraints.NotBlank;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -28,12 +33,21 @@ import org.springframework.util.Assert;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.mail.MessagingException;
-import javax.validation.constraints.NotBlank;
-import java.io.File;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.*;
+import com.assessment.common.AmazonSESUtility;
+import com.assessment.common.ConfigUtility;
+import com.assessment.common.CsvFileDecoder;
+import com.assessment.common.FileUtility;
+import com.assessment.common.StringUtility;
+import com.assessment.iam.commons.AuthUtils;
+import com.assessment.iam.dtos.AppRole;
+import com.assessment.iam.dtos.UserUpdateRequestDto;
+import com.assessment.iam.entities.Tenant;
+import com.assessment.iam.entities.User;
+import com.assessment.iam.exceptions.TenantInActiveException;
+import com.assessment.iam.exceptions.TenantNotFoundException;
+import com.assessment.iam.repositories.UserRepository;
+import com.google.common.io.Files;
+import com.opencsv.exceptions.CsvValidationException;
 
 @Service("userDetailsService")
 public class UserServiceImpl implements UserDetailsService, UserService {
@@ -151,6 +165,9 @@ public class UserServiceImpl implements UserDetailsService, UserService {
         currentUser.setGender(dto.getGender());
         currentUser.setAddress(dto.getAddress());
         currentUser.setState(dto.getState());
+		currentUser.setAcceptedTerms(dto.isAcceptedTerms());
+		currentUser.setAcceptedTermsOn(dto.getAcceptedTermsOn());
+
         //keep existing password as it is, do not update it.
         userRepository.save(currentUser);
     }
