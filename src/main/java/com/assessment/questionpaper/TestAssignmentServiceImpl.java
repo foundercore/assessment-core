@@ -808,17 +808,14 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
                                     || QuestionType.FILL_IN_THE_BLANKS.value().equalsIgnoreCase(questionDto.getType())
                                     || QuestionType.AWA.value().equalsIgnoreCase(questionDto.getType())
                                     || QuestionType.PASSAGE.value().equalsIgnoreCase(questionDto.getType())){
-                                boolean allMatch = true;
-                                if (answer.getOptions() != null && !answer.getOptions().isEmpty()) {
-                                    for (String option : questionMap.get(questionDto.getId()).getAnswer().getOptions()) {
-                                        if (allMatch) {
-                                            if (!answer.getOptions().contains(option)) {
-                                                allMatch = false;
-                                            }
-                                        }
-                                    }
-                                }else {
-                                    allMatch = false;
+								boolean allMatch = false;
+								if (answer.getOptions() != null && !answer.getOptions().isEmpty()
+										&& questionMap.get(questionDto.getId()) != null) {
+									List<String> correctOptions = questionMap.get(questionDto.getId()).getAnswer()
+											.getOptions();
+									if (answer.getOptions().equals(correctOptions)) {
+										allMatch = true;
+									}
                                 }
                                 if (allMatch){
                                     answer.setMarkAllocated(questionDto.getPositiveMark());

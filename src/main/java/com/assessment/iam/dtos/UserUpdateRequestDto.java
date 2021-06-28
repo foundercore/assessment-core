@@ -1,14 +1,18 @@
 package com.assessment.iam.dtos;
 
-import lombok.Getter;
-import lombok.Setter;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
-import javax.validation.constraints.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 import com.assessment.common.validations.ValidDisplayName;
 
-import java.util.HashSet;
-import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
 
 @Getter
 @Setter
@@ -37,4 +41,8 @@ public class UserUpdateRequestDto {
     @NotNull
     @NotEmpty
     Set<@NotBlank @Size(max = 100) String> roles = new HashSet<>();
+
+	private boolean acceptedTerms;
+
+	private Date acceptedTermsOn;
 }
