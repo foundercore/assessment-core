@@ -20,6 +20,7 @@ public class Metric {
     private double totalTimeInSec = 0;
     private double correctTimeInSec = 0;
     private double incorrectTimeInSec = 0;
+	private double skippedTimeInSec = 0;
 
     public void addTotal(double markAllocated, int timeElapsedInSec, double totalMarks){
         this.totalQuestions++;
@@ -43,6 +44,7 @@ public class Metric {
     public void addSkipped(double markAllocated, int timeElapsedInSec){
         this.skipped++;
         this.skippedMarks += markAllocated;
+		this.skippedTimeInSec += timeElapsedInSec;
     }
 
     public void addAttempt(){
