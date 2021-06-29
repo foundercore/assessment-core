@@ -1,13 +1,18 @@
 package com.assessment.questionpaper.entity;
 
-import lombok.Data;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.assessment.questionpaper.dto.SubmissionResponseDto;
 
-import java.util.*;
+import lombok.Data;
 
 @Data
 @Document(collection = Submission.COLLECTION_NAME)
@@ -34,6 +39,8 @@ public class Submission {
     /* activity logs */
     @LastModifiedDate
     private Date lastUpdatedOn;
+
+	private int totalTestTimeTakenInSec;
 
     public void addSection(Section section){
         if (this.sections == null) this.sections = new HashMap<>();

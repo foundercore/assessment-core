@@ -408,6 +408,8 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
         /* set submission values*/
         section.addAnswer(answer);
         submission.addSection(section);
+		int previousTotalTimeTaken = submission.getTotalTestTimeTakenInSec();
+		submission.setTotalTestTimeTakenInSec(dto.getTimeElapsedInSec() + previousTotalTimeTaken);
 
         /* update submission */
         submissionRepository.save(submission);
@@ -450,6 +452,8 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
         /* set submission values*/
         section.addAnswer(answer);
         submission.addSection(section);
+		int previousTotalTimeTaken = submission.getTotalTestTimeTakenInSec();
+		submission.setTotalTestTimeTakenInSec(dto.getTimeElapsedInSec() + previousTotalTimeTaken);
 
         /* update submission */
         submissionRepository.save(submission);
@@ -490,6 +494,8 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
         /* set submission values */
         section.addAnswer(answer);
         submission.addSection(section);
+		int previousTotalTimeTaken = submission.getTotalTestTimeTakenInSec();
+		submission.setTotalTestTimeTakenInSec(dto.getTimeElapsedInSec() + previousTotalTimeTaken);
 
         /* update submission */
         submissionRepository.save(submission);
@@ -540,6 +546,7 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
         responseDto.setAttempt(submission.getAttempt());
         responseDto.setEvaluation(submission.getEvaluation());
         responseDto.setLastUpdatedOn(submission.getLastUpdatedOn());
+		responseDto.setTotalTestTimeTakenInSec(submission.getTotalTestTimeTakenInSec());
         /* test related details */
         responseDto.setTestId(qp.getId().getQuestionPaperId());
         responseDto.setTestName(qp.getName());
@@ -799,7 +806,6 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
                         if ((answer.getOptions() == null || answer.getOptions().isEmpty()) && StringUtils.isEmpty(answer.getAnswerText())){
                             /* mark as skipped question */
                             answer.setAnswerStatus(AnswerState.SKIPPED.value());
-                            answer.setTimeElapsedInSec(0);
                             answer.setMarkAllocated(questionDto.getSkipMark() * -1);
                             answer.setTotalMark(questionDto.getPositiveMark());
                         }else {
@@ -842,7 +848,6 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
                         Submission.Answer object = new Submission.Answer();
                         object.setQuestionId(questionDto.getId());
                         object.setAnswerStatus(AnswerState.SKIPPED.value());
-                        object.setTimeElapsedInSec(0);
                         object.setMarkAllocated(questionDto.getSkipMark() * -1);
                         object.setTotalMark(questionDto.getPositiveMark());
                         if (!missing.containsKey(section.getSectionId())){
