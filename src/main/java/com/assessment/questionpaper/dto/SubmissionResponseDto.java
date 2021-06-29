@@ -1,12 +1,12 @@
 package com.assessment.questionpaper.dto;
 
-import lombok.Data;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import com.assessment.questionpaper.entity.Metric;
+
+import lombok.Data;
 
 @Data
 public class SubmissionResponseDto {
@@ -27,6 +27,8 @@ public class SubmissionResponseDto {
     private SummaryResponseDto summary;
 
     private Date lastUpdatedOn;
+
+	private int totalTestTimeTakenInSec;
 
     public void addSection(SectionResponseDto section){
         if (this.sections == null) this.sections = new ArrayList<>();
