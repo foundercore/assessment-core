@@ -150,12 +150,6 @@ public class TestConfigServiceImpl implements TestConfigService {
         if (dto.getTotalMarks() < 0){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("totalMarks %s can't be negative", dto.getTotalMarks()));
         }
-        if (dto.getMinimumDurationInMinutes() < 0){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("durationAfterSubmissionAllowedInMinutes %s can't be negative", dto.getMinimumDurationInMinutes()));
-        }
-        if (dto.getMinimumDurationInMinutes() > dto.getTotalDurationInMinutes()){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("durationAfterSubmissionAllowedInMinutes should be less than totalDurationInMinutes", dto.getMinimumDurationInMinutes()));
-        }
 
         /* question level validation */
         List<String> questions = new ArrayList<>();
@@ -255,9 +249,6 @@ public class TestConfigServiceImpl implements TestConfigService {
         }
         if (dto.getTotalMarks() <= 0){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("totalMarks %s can't be negative/zero", dto.getTotalMarks()));
-        }
-        if (dto.getMinimumDurationInMinutes() <= 0){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("minimumDurationInMinutes %s can't be negative/zero", dto.getMinimumDurationInMinutes()));
         }
 
 
