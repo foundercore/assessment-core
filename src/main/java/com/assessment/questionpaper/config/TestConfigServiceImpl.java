@@ -150,12 +150,6 @@ public class TestConfigServiceImpl implements TestConfigService {
         if (dto.getTotalMarks() < 0){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("totalMarks %s can't be negative", dto.getTotalMarks()));
         }
-        if (dto.getMinimumDurationInMinutes() < 0){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("durationAfterSubmissionAllowedInMinutes %s can't be negative", dto.getMinimumDurationInMinutes()));
-        }
-        if (dto.getMinimumDurationInMinutes() > dto.getTotalDurationInMinutes()){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("durationAfterSubmissionAllowedInMinutes should be less than totalDurationInMinutes", dto.getMinimumDurationInMinutes()));
-        }
 
         /* question level validation */
         List<String> questions = new ArrayList<>();
@@ -255,9 +249,6 @@ public class TestConfigServiceImpl implements TestConfigService {
         }
         if (dto.getTotalMarks() <= 0){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("totalMarks %s can't be negative/zero", dto.getTotalMarks()));
-        }
-        if (dto.getMinimumDurationInMinutes() <= 0){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("minimumDurationInMinutes %s can't be negative/zero", dto.getMinimumDurationInMinutes()));
         }
 
 
@@ -702,9 +693,11 @@ public class TestConfigServiceImpl implements TestConfigService {
 
         List<QuestionPaper> questionPapers = mongoTemplate.find(query, QuestionPaper.class);
         List<QuestionPaperResponseDto> dtos = new ArrayList<>();
+
 		for (QuestionPaper qp : questionPapers) {
 			dtos.add(buildQuestionPaperResponse(qp, false));
 		}
+
         return dtos;
     }
 
@@ -1012,9 +1005,6 @@ public class TestConfigServiceImpl implements TestConfigService {
         if (!"lastUpdatedOn".equalsIgnoreCase(filter.getSortColumn())){
             query.with(Sort.by(Sort.Direction.DESC, "lastUpdatedOn"));
         }
-//        if (!"questionPaperId".equalsIgnoreCase(filter.getSortColumn())){
-//            query.with(Sort.by(Sort.Direction.DESC, "_id.questionPaperId"));
-//        }
 
         int limit = filter.getPageSize() > 0 && filter.getPageSize() <= 100? filter.getPageSize(): 100;
 
@@ -1048,6 +1038,7 @@ public class TestConfigServiceImpl implements TestConfigService {
         if (totalRecords > 0) {
             List<QuestionPaper> questionPapers = mongoTemplate.find(query, QuestionPaper.class);
 			// Do not need the whole object
+
 			questionPapers.forEach(qp -> dtos.add(buildQuestionPaperResponse(qp, false)));
 			// response.setPaginatedRowId(dtos.get(dtos.size()-1).getQuestionPaperId());
 
