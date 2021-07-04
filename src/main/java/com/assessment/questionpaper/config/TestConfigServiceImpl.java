@@ -693,9 +693,10 @@ public class TestConfigServiceImpl implements TestConfigService {
 
         List<QuestionPaper> questionPapers = mongoTemplate.find(query, QuestionPaper.class);
         List<QuestionPaperResponseDto> dtos = new ArrayList<>();
-        for (QuestionPaper qp : questionPapers) {
-            dtos.add(buildQuestionPaperResponse(qp));
-        }
+		// Do not need the whole object
+		// for (QuestionPaper qp : questionPapers) {
+		// dtos.add(buildQuestionPaperResponse(qp));
+		// }
         return dtos;
     }
 
@@ -1002,9 +1003,6 @@ public class TestConfigServiceImpl implements TestConfigService {
         if (!"lastUpdatedOn".equalsIgnoreCase(filter.getSortColumn())){
             query.with(Sort.by(Sort.Direction.DESC, "lastUpdatedOn"));
         }
-//        if (!"questionPaperId".equalsIgnoreCase(filter.getSortColumn())){
-//            query.with(Sort.by(Sort.Direction.DESC, "_id.questionPaperId"));
-//        }
 
         int limit = filter.getPageSize() > 0 && filter.getPageSize() <= 100? filter.getPageSize(): 100;
 
@@ -1037,8 +1035,9 @@ public class TestConfigServiceImpl implements TestConfigService {
         /* execute query & prepare response */
         if (totalRecords > 0) {
             List<QuestionPaper> questionPapers = mongoTemplate.find(query, QuestionPaper.class);
-            questionPapers.forEach(qp -> dtos.add(buildQuestionPaperResponse(qp)));
-//            response.setPaginatedRowId(dtos.get(dtos.size()-1).getQuestionPaperId());
+			// Do not need the whole object
+			// questionPapers.forEach(qp -> dtos.add(buildQuestionPaperResponse(qp)));
+			// response.setPaginatedRowId(dtos.get(dtos.size()-1).getQuestionPaperId());
         }
         return response;
     }
