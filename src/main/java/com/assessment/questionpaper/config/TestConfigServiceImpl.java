@@ -702,9 +702,9 @@ public class TestConfigServiceImpl implements TestConfigService {
 
         List<QuestionPaper> questionPapers = mongoTemplate.find(query, QuestionPaper.class);
         List<QuestionPaperResponseDto> dtos = new ArrayList<>();
-        for (QuestionPaper qp : questionPapers) {
-            dtos.add(buildQuestionPaperResponse(qp));
-        }
+		for (QuestionPaper qp : questionPapers) {
+			dtos.add(buildQuestionPaperResponse(qp, false));
+		}
         return dtos;
     }
 
@@ -739,7 +739,7 @@ public class TestConfigServiceImpl implements TestConfigService {
         id.setTenantId(AuthUtils.getCurrentTenantId());
         id.setQuestionPaperId(paperId);
         QuestionPaper questionPaper = testConfigRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Question paper %s does not exist", paperId)));
-        return buildQuestionPaperResponse(questionPaper);
+		return buildQuestionPaperResponse(questionPaper, true);
     }
 
     @Override
@@ -857,16 +857,10 @@ public class TestConfigServiceImpl implements TestConfigService {
         testConfigRepository.save(questionPaper);
     }
 
-    private QuestionPaperResponseDto buildQuestionPaperResponse(QuestionPaper qp) {
+	private QuestionPaperResponseDto buildQuestionPaperResponse(QuestionPaper qp, boolean detailed) {
 
-        List<Question> questions = getQuestionPaperLinkedQuestions(qp.getId().getQuestionPaperId());
-        Map<String, Question> questionMap = new HashMap<>();
-        if (questions != null){
-            questions.forEach(q -> questionMap.put(q.getId().getQuestionId(), q));
-        }
 
         QuestionPaperResponseDto dto = new QuestionPaperResponseDto();
-//        dto.setTenantId(qp.getId().getTenantId());
         dto.setQuestionPaperId(qp.getId().getQuestionPaperId());
         dto.setName(qp.getName());
         dto.setSubject(qp.getSubject());
@@ -887,7 +881,14 @@ public class TestConfigServiceImpl implements TestConfigService {
         }
         dto.setSectionOrder(qp.getSectionOrder());
 
-        if (qp.getSections() != null) {
+		if (qp.getSections() != null && detailed) {
+
+			List<Question> questions = getQuestionPaperLinkedQuestions(qp.getId().getQuestionPaperId());
+			Map<String, Question> questionMap = new HashMap<>();
+			if (questions != null) {
+				questions.forEach(q -> questionMap.put(q.getId().getQuestionId(), q));
+			}
+
             Map<String, List<QuestionPaperResponseDto.PaperSectionResponseDto>> subsectionMap = new HashMap<>();
             for (QuestionPaper.PaperSection ps : qp.getSections().values()) {
                 QuestionPaperResponseDto.PaperSectionResponseDto section = new QuestionPaperResponseDto.PaperSectionResponseDto();
@@ -940,7 +941,7 @@ public class TestConfigServiceImpl implements TestConfigService {
                 }
             }
         }
-        if (qp.getMigration() != null){
+		if (qp.getMigration() != null && detailed) {
             for (QuestionPaper.PaperMigration migration: qp.getMigration()){
                 QuestionPaperResponseDto.PaperMigrationResponseDto migrationDto = new QuestionPaperResponseDto.PaperMigrationResponseDto();
                 migrationDto.setStatus(migration.getStatus());
@@ -1046,8 +1047,10 @@ public class TestConfigServiceImpl implements TestConfigService {
         /* execute query & prepare response */
         if (totalRecords > 0) {
             List<QuestionPaper> questionPapers = mongoTemplate.find(query, QuestionPaper.class);
-            questionPapers.forEach(qp -> dtos.add(buildQuestionPaperResponse(qp)));
-//            response.setPaginatedRowId(dtos.get(dtos.size()-1).getQuestionPaperId());
+			// Do not need the whole object
+			questionPapers.forEach(qp -> dtos.add(buildQuestionPaperResponse(qp, false)));
+			// response.setPaginatedRowId(dtos.get(dtos.size()-1).getQuestionPaperId());
+
         }
         return response;
     }
