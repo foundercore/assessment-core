@@ -2,6 +2,8 @@ package com.assessment.question;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -830,4 +832,134 @@ public class QuestionServiceImpl implements QuestionService {
         question.setTags(tags);
         questionRepository.save(question);
     }
+
+	@Override
+	public void metadataQuestionBulkUpdate(MultipartFile file) throws IOException, CsvValidationException {
+		String directory = Files.createTempDir().getAbsolutePath() + File.separator + AuthUtils.getCurrentUsername()
+				+ File.separator + UUID.randomUUID().toString();
+		File tempFile = null;
+
+		try {
+			/* save file */
+			Files.createParentDirs(new File(directory + File.separator + "tmp.log"));
+			String fileName = file.getOriginalFilename();
+			fileName = directory + File.separator + fileName;
+			FileUtility.saveFile(file, fileName);
+			tempFile = new File(fileName);
+
+			initMetadataQuestionBulkUpdate(fileName);
+		} catch (IOException | CsvValidationException e) {
+			throw e;
+		} finally {
+			if (tempFile != null && tempFile.exists()) {
+				FileUtility.delete(tempFile);
+			}
+		}
+	}
+
+	public void initMetadataQuestionBulkUpdate(String filePath) throws IOException, CsvValidationException {
+		/* read file & load all question */
+		StringBuilder error = new StringBuilder();
+		List<Question> questions = new ArrayList<>();
+		IFileDecoder decoder;
+		if (filePath.endsWith(".csv")) {
+			decoder = new CsvFileDecoder(filePath);
+		} else if (filePath.endsWith(".xlsx") || filePath.endsWith(".xls")) {
+			decoder = new XLReader(filePath);
+		} else {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+					String.format("Unsupported file format. File - %s", filePath));
+		}
+		Path fileName = Paths.get(filePath).getFileName();
+		String questionPaperId = fileName.toString().substring(0, fileName.toString().indexOf('-')).trim();
+		String questionPaperFileName = questionPaperId + ".xlsx";
+		int rowCount = 0;
+		while (decoder.hasNext()) {
+			rowCount++;
+			Map<String, Object> record = decoder.next();
+
+			String questionName = String.valueOf(record.get("Name"));
+			String passage = String.valueOf(record.get("Passage"));
+
+			Criteria description = Criteria.where("passage").is(passage);
+			Criteria filename = Criteria.where("fileName").is(questionPaperFileName);
+			Criteria name = Criteria.where("name").is(questionName);
+			Criteria nc = new Criteria().andOperator(name, description, filename);
+
+
+			Query getQuestionId = new Query();
+			getQuestionId.addCriteria(nc);
+			List<Question> mappedQuestion = mongoTemplate.find(getQuestionId, Question.class);
+			if (mappedQuestion == null || mappedQuestion.isEmpty() || mappedQuestion.size() != 1) {
+				log.info("Question {} not unique. File - {}, Position - {}", name, fileName, rowCount);
+				continue;
+			}
+
+			/* prepare & validate question modal */
+			Question question = mappedQuestion.get(0);
+
+			for (Map.Entry<String, Object> entry : record.entrySet()) {
+				String key = entry.getKey().toLowerCase();
+				Object value = entry.getValue();
+				switch (key) {
+				case "Subject":
+					question.setSubject(String.valueOf(value));
+					break;
+				case "Topic":
+					question.setTopic(String.valueOf(value));
+					break;
+				case "Sub Topic":
+					question.setSubTopic(String.valueOf(value));
+					break;
+				case "Difficulty Level":
+					question.setDifficultyLevel(getDifficultyLevel(String.valueOf(value)));
+					break;
+				}
+			}
+			question.setLastUpdatedBy(AuthUtils.getCurrentQualifiedUsername());
+			question.setLastUpdatedOn(new Date());
+
+			/* validate question modal */
+			try {
+				/* constraints violations */
+				Set<ConstraintViolation<Question>> violations = validator.validate(question);
+				if (!violations.isEmpty()) {
+					throw new ConstraintViolationException(violations);
+				}
+
+				/* business checks */
+				validateQuestion(question);
+				/* keep question */
+				questions.add(question);
+			} catch (Exception e) {
+				error.append("Question - ").append(rowCount).append(", Error - ").append(e.getMessage()).append("\n");
+			}
+		}
+		Map<String, Question> unique = new HashMap<>();
+		questions.forEach(q -> {
+			if (!unique.containsKey(q.getId().getQuestionId())) {
+				unique.put(q.getId().getQuestionId(), q);
+			}
+		});
+		/* save questions */
+		if (error.toString().trim().isEmpty()) {
+			log.info("File - {}, Saved - {}, Duplicates - {}", filePath, unique.size(),
+					questions.size() - unique.size());
+			questionRepository.saveAll(unique.values());
+		} else {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, error.toString());
+		}
+	}
+
+	private String getDifficultyLevel(String difficultyId) {
+		if ("1.0".equals(difficultyId)) {
+			return DifficultyLevel.EASY.value();
+		} else if ("2.0".equals(difficultyId)) {
+			return DifficultyLevel.MEDIUM.value();
+		} else if ("3.0".equals(difficultyId)) {
+			return DifficultyLevel.HARD.value();
+		}
+		return "EASY";
+	}
+
 }
