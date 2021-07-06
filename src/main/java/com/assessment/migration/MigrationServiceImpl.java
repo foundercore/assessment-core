@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -198,4 +197,45 @@ public class MigrationServiceImpl implements MigrationService {
         }
         return count;
     }
+
+	@Override
+	public void intiQuestionMetadataUpdate(Path inputExcelPath, String errorDir, String outputDir, String archiveDir) {
+		File inputJsonFile = null;
+		File output = null;
+
+		try {
+			inputJsonFile = inputExcelPath.toFile();
+			String outFile = outputDir + File.separator + inputJsonFile.getName();
+			/* move file to output folder */
+			if (inputJsonFile != null) {
+
+				try {
+					Files.move(inputJsonFile, new File(outFile));
+				} catch (IOException ignored) {
+				}
+			}
+			/* read file from output folder */
+			output = new File(outFile);
+			/* question creation */
+			questionService.initMetadataQuestionBulkUpdate(output.getAbsolutePath());
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+			if (output != null) {
+				String errorFile = errorDir + File.separator + output.getName();
+				try {
+					Files.move(output, new File(errorFile));
+				} catch (IOException ignored) {
+				}
+			}
+		} finally {
+			if (output != null && output.exists()) {
+				String archiveFile = archiveDir + File.separator + output.getName();
+				try {
+					Files.move(output, new File(archiveFile));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
 }

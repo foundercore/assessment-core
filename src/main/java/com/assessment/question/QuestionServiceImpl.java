@@ -857,6 +857,7 @@ public class QuestionServiceImpl implements QuestionService {
 		}
 	}
 
+	@Override
 	public void initMetadataQuestionBulkUpdate(String filePath) throws IOException, CsvValidationException {
 		/* read file & load all question */
 		StringBuilder error = new StringBuilder();
@@ -873,25 +874,39 @@ public class QuestionServiceImpl implements QuestionService {
 		Path fileName = Paths.get(filePath).getFileName();
 		String questionPaperId = fileName.toString().substring(0, fileName.toString().indexOf('-')).trim();
 		String questionPaperFileName = questionPaperId + ".xlsx";
+
+		log.info("updating question for {}. File name {}", questionPaperFileName, fileName.toString());
+
 		int rowCount = 0;
+		Query getQuestionByFileName = new Query();
+		getQuestionByFileName.addCriteria(Criteria.where("fileName").is(questionPaperFileName));
+		List<Question> questionsForFile = mongoTemplate.find(getQuestionByFileName, Question.class);
+		if (questionsForFile == null || questionsForFile.isEmpty()) {
+			log.error("No Question found for file {}", questionPaperFileName);
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, questionPaperFileName);
+		}
+
 		while (decoder.hasNext()) {
 			rowCount++;
 			Map<String, Object> record = decoder.next();
+			// query to fetch the question
+			Query getQuestionId = new Query();
 
 			String questionName = String.valueOf(record.get("Name"));
 			String passage = String.valueOf(record.get("Passage"));
+			if (StringUtils.isNotBlank(passage)) {
+				getQuestionId.addCriteria(Criteria.where("passage").regex(Pattern.quote(passage), "idx"));
+			}
+			if (StringUtils.isNotBlank(questionPaperFileName)) {
+				getQuestionId.addCriteria(Criteria.where("fileName").is(questionPaperFileName));
+			}
+			if (StringUtils.isNotBlank(questionName)) {
+				getQuestionId.addCriteria(Criteria.where("name").regex(Pattern.quote(questionName), "idx"));
+			}
 
-			Criteria description = Criteria.where("passage").is(passage);
-			Criteria filename = Criteria.where("fileName").is(questionPaperFileName);
-			Criteria name = Criteria.where("name").is(questionName);
-			Criteria nc = new Criteria().andOperator(name, description, filename);
-
-
-			Query getQuestionId = new Query();
-			getQuestionId.addCriteria(nc);
 			List<Question> mappedQuestion = mongoTemplate.find(getQuestionId, Question.class);
 			if (mappedQuestion == null || mappedQuestion.isEmpty() || mappedQuestion.size() != 1) {
-				log.info("Question {} not unique. File - {}, Position - {}", name, fileName, rowCount);
+				log.info("Question {} not unique. File - {}, Position - {}", questionName, fileName, rowCount);
 				continue;
 			}
 
@@ -902,16 +917,16 @@ public class QuestionServiceImpl implements QuestionService {
 				String key = entry.getKey().toLowerCase();
 				Object value = entry.getValue();
 				switch (key) {
-				case "Subject":
+				case "subject":
 					question.setSubject(String.valueOf(value));
 					break;
-				case "Topic":
+				case "topic":
 					question.setTopic(String.valueOf(value));
 					break;
-				case "Sub Topic":
+				case "sub topic":
 					question.setSubTopic(String.valueOf(value));
 					break;
-				case "Difficulty Level":
+				case "difficulty level":
 					question.setDifficultyLevel(getDifficultyLevel(String.valueOf(value)));
 					break;
 				}

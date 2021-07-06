@@ -24,9 +24,11 @@ public interface QuestionService {
 
     void bulkCreateQuestions(MultipartFile file) throws IOException, CsvValidationException;
 
+    void initBulkCreationQuestion(String fileName) throws IOException, CsvValidationException;
+
 	void metadataQuestionBulkUpdate(MultipartFile file) throws IOException, CsvValidationException;
 
-    void initBulkCreationQuestion(String fileName) throws IOException, CsvValidationException;
+	void initMetadataQuestionBulkUpdate(String filePath) throws IOException, CsvValidationException;
 
     boolean exists(String id);
 
