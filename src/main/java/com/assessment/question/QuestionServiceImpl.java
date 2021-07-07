@@ -896,12 +896,14 @@ public class QuestionServiceImpl implements QuestionService {
 			String questionName = String.valueOf(record.get("Name"));
 			String passage = String.valueOf(record.get("Passage"));
 			// get Passage object associated with Passage Id
-			Passage matchedPassage = qPassages.stream()
+			Passage matchedPassage = StringUtils.isEmpty(passage) ? null
+					: qPassages.stream()
 					.filter(x -> passage.equalsIgnoreCase(StringUtility.html2text(x.getContent(), true))).findFirst()
 					.orElse(null);
 			// get question from the list if matched successfully based on Name and Passage
 			List<Question> mappedQuestion = questionsForFile.stream().filter(q -> {
-				if (q.getPassageId().equals(matchedPassage.getId().getPassageId())
+				if ((matchedPassage == null
+						|| (q.getPassageId() != null && q.getPassageId().equals(matchedPassage.getId().getPassageId())))
 						&& (StringUtils.isEmpty(questionName)
 								|| questionName.equals(StringUtility.html2text(q.getName(), true)))) {
 					return true;
@@ -976,6 +978,8 @@ public class QuestionServiceImpl implements QuestionService {
 			return DifficultyLevel.MEDIUM.value();
 		} else if ("3.0".equals(difficultyId)) {
 			return DifficultyLevel.HARD.value();
+		} else if ("4.0".equals(difficultyId)) {
+			return DifficultyLevel.VERY_HARD.value();
 		}
 		return "EASY";
 	}
