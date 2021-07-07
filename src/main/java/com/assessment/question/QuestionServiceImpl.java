@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
@@ -878,6 +879,7 @@ public class QuestionServiceImpl implements QuestionService {
 		log.info("updating question for {}. File name {}", questionPaperFileName, fileName.toString());
 
 		int rowCount = 0;
+		// get all questions associated to this test based on the file name
 		Query getQuestionByFileName = new Query();
 		getQuestionByFileName.addCriteria(Criteria.where("fileName").is(questionPaperFileName));
 		List<Question> questionsForFile = mongoTemplate.find(getQuestionByFileName, Question.class);
@@ -885,28 +887,30 @@ public class QuestionServiceImpl implements QuestionService {
 			log.error("No Question found for file {}", questionPaperFileName);
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, questionPaperFileName);
 		}
-
+		// get all passages
+		List<Passage> qPassages = mongoTemplate.findAll(Passage.class);
 		while (decoder.hasNext()) {
 			rowCount++;
 			Map<String, Object> record = decoder.next();
-			// query to fetch the question
-			Query getQuestionId = new Query();
 
 			String questionName = String.valueOf(record.get("Name"));
 			String passage = String.valueOf(record.get("Passage"));
-			if (StringUtils.isNotBlank(passage)) {
-				getQuestionId.addCriteria(Criteria.where("passage").regex(Pattern.quote(passage), "idx"));
-			}
-			if (StringUtils.isNotBlank(questionPaperFileName)) {
-				getQuestionId.addCriteria(Criteria.where("fileName").is(questionPaperFileName));
-			}
-			if (StringUtils.isNotBlank(questionName)) {
-				getQuestionId.addCriteria(Criteria.where("name").regex(Pattern.quote(questionName), "idx"));
-			}
+			// get Passage object associated with Passage Id
+			Passage matchedPassage = qPassages.stream()
+					.filter(x -> passage.equalsIgnoreCase(StringUtility.html2text(x.getContent(), true))).findFirst()
+					.orElse(null);
+			// get question from the list if matched successfully based on Name and Passage
+			List<Question> mappedQuestion = questionsForFile.stream().filter(q -> {
+				if (q.getPassageId().equals(matchedPassage.getId().getPassageId())
+						&& (StringUtils.isEmpty(questionName)
+								|| questionName.equals(StringUtility.html2text(q.getName(), true)))) {
+					return true;
+				}
+				return false;
+			}).collect(Collectors.toList());
 
-			List<Question> mappedQuestion = mongoTemplate.find(getQuestionId, Question.class);
 			if (mappedQuestion == null || mappedQuestion.isEmpty() || mappedQuestion.size() != 1) {
-				log.info("Question {} not unique. File - {}, Position - {}", questionName, fileName, rowCount);
+				log.info("Question : - '{}' is not unique. File - {}, Position - {}", questionName, fileName, rowCount);
 				continue;
 			}
 
@@ -942,8 +946,6 @@ public class QuestionServiceImpl implements QuestionService {
 					throw new ConstraintViolationException(violations);
 				}
 
-				/* business checks */
-				validateQuestion(question);
 				/* keep question */
 				questions.add(question);
 			} catch (Exception e) {
@@ -965,6 +967,7 @@ public class QuestionServiceImpl implements QuestionService {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, error.toString());
 		}
 	}
+
 
 	private String getDifficultyLevel(String difficultyId) {
 		if ("1.0".equals(difficultyId)) {
