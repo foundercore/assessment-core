@@ -2,6 +2,8 @@ package com.assessment.question;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -11,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
@@ -830,4 +833,155 @@ public class QuestionServiceImpl implements QuestionService {
         question.setTags(tags);
         questionRepository.save(question);
     }
+
+	@Override
+	public void metadataQuestionBulkUpdate(MultipartFile file) throws IOException, CsvValidationException {
+		String directory = Files.createTempDir().getAbsolutePath() + File.separator + AuthUtils.getCurrentUsername()
+				+ File.separator + UUID.randomUUID().toString();
+		File tempFile = null;
+
+		try {
+			/* save file */
+			Files.createParentDirs(new File(directory + File.separator + "tmp.log"));
+			String fileName = file.getOriginalFilename();
+			fileName = directory + File.separator + fileName;
+			FileUtility.saveFile(file, fileName);
+			tempFile = new File(fileName);
+
+			initMetadataQuestionBulkUpdate(fileName);
+		} catch (IOException | CsvValidationException e) {
+			throw e;
+		} finally {
+			if (tempFile != null && tempFile.exists()) {
+				FileUtility.delete(tempFile);
+			}
+		}
+	}
+
+	@Override
+	public void initMetadataQuestionBulkUpdate(String filePath) throws IOException, CsvValidationException {
+		/* read file & load all question */
+		StringBuilder error = new StringBuilder();
+		List<Question> questions = new ArrayList<>();
+		IFileDecoder decoder;
+		if (filePath.endsWith(".csv")) {
+			decoder = new CsvFileDecoder(filePath);
+		} else if (filePath.endsWith(".xlsx") || filePath.endsWith(".xls")) {
+			decoder = new XLReader(filePath);
+		} else {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+					String.format("Unsupported file format. File - %s", filePath));
+		}
+		Path fileName = Paths.get(filePath).getFileName();
+		String questionPaperId = fileName.toString().substring(0, fileName.toString().indexOf('-')).trim();
+		String questionPaperFileName = questionPaperId + ".xlsx";
+
+		log.info("updating question for {}. File name {}", questionPaperFileName, fileName.toString());
+
+		int rowCount = 0;
+		// get all questions associated to this test based on the file name
+		Query getQuestionByFileName = new Query();
+		getQuestionByFileName.addCriteria(Criteria.where("fileName").is(questionPaperFileName));
+		List<Question> questionsForFile = mongoTemplate.find(getQuestionByFileName, Question.class);
+		if (questionsForFile == null || questionsForFile.isEmpty()) {
+			log.error("No Question found for file {}", questionPaperFileName);
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, questionPaperFileName);
+		}
+		// get all passages
+		List<Passage> qPassages = mongoTemplate.findAll(Passage.class);
+		while (decoder.hasNext()) {
+			rowCount++;
+			Map<String, Object> record = decoder.next();
+
+			String questionName = String.valueOf(record.get("Name"));
+			String passage = String.valueOf(record.get("Passage"));
+			// get Passage object associated with Passage Id
+			Passage matchedPassage = StringUtils.isEmpty(passage) ? null
+					: qPassages.stream()
+					.filter(x -> passage.equalsIgnoreCase(StringUtility.html2text(x.getContent(), true))).findFirst()
+					.orElse(null);
+			// get question from the list if matched successfully based on Name and Passage
+			List<Question> mappedQuestion = questionsForFile.stream().filter(q -> {
+				if ((matchedPassage == null
+						|| (q.getPassageId() != null && q.getPassageId().equals(matchedPassage.getId().getPassageId())))
+						&& (StringUtils.isEmpty(questionName)
+								|| questionName.equals(StringUtility.html2text(q.getName(), true)))) {
+					return true;
+				}
+				return false;
+			}).collect(Collectors.toList());
+
+			if (mappedQuestion == null || mappedQuestion.isEmpty() || mappedQuestion.size() != 1) {
+				log.info("Question : - '{}' is not unique. File - {}, Position - {}", questionName, fileName, rowCount);
+				continue;
+			}
+
+			/* prepare & validate question modal */
+			Question question = mappedQuestion.get(0);
+
+			for (Map.Entry<String, Object> entry : record.entrySet()) {
+				String key = entry.getKey().toLowerCase();
+				Object value = entry.getValue();
+				switch (key) {
+				case "subject":
+					question.setSubject(String.valueOf(value));
+					break;
+				case "topic":
+					question.setTopic(String.valueOf(value));
+					break;
+				case "sub topic":
+					question.setSubTopic(String.valueOf(value));
+					break;
+				case "difficulty level":
+					question.setDifficultyLevel(getDifficultyLevel(String.valueOf(value)));
+					break;
+				}
+			}
+			question.setLastUpdatedBy(AuthUtils.getCurrentQualifiedUsername());
+			question.setLastUpdatedOn(new Date());
+
+			/* validate question modal */
+			try {
+				/* constraints violations */
+				Set<ConstraintViolation<Question>> violations = validator.validate(question);
+				if (!violations.isEmpty()) {
+					throw new ConstraintViolationException(violations);
+				}
+
+				/* keep question */
+				questions.add(question);
+			} catch (Exception e) {
+				error.append("Question - ").append(rowCount).append(", Error - ").append(e.getMessage()).append("\n");
+			}
+		}
+		Map<String, Question> unique = new HashMap<>();
+		questions.forEach(q -> {
+			if (!unique.containsKey(q.getId().getQuestionId())) {
+				unique.put(q.getId().getQuestionId(), q);
+			}
+		});
+		/* save questions */
+		if (error.toString().trim().isEmpty()) {
+			log.info("File - {}, Saved - {}, Duplicates - {}", filePath, unique.size(),
+					questions.size() - unique.size());
+			questionRepository.saveAll(unique.values());
+		} else {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, error.toString());
+		}
+	}
+
+
+	private String getDifficultyLevel(String difficultyId) {
+		if ("1.0".equals(difficultyId)) {
+			return DifficultyLevel.EASY.value();
+		} else if ("2.0".equals(difficultyId)) {
+			return DifficultyLevel.MEDIUM.value();
+		} else if ("3.0".equals(difficultyId)) {
+			return DifficultyLevel.HARD.value();
+		} else if ("4.0".equals(difficultyId)) {
+			return DifficultyLevel.VERY_HARD.value();
+		}
+		return "EASY";
+	}
+
 }

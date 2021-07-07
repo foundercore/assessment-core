@@ -1,14 +1,15 @@
 package com.assessment.question;
 
-import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import javax.validation.constraints.NotNull;
+
 public enum DifficultyLevel {
     EASY("EASY"),
     MEDIUM("MEDIUM"),
-    HARD("HARD")
+	HARD("HARD"), VERY_HARD("VERY HARD")
     ;
 
     private final String value;

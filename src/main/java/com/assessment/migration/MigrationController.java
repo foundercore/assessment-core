@@ -1,6 +1,18 @@
 package com.assessment.migration;
 
-import lombok.extern.slf4j.Slf4j;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -27,18 +39,7 @@ import com.assessment.common.ConfigUtility;
 import com.assessment.iam.entities.Tenant;
 import com.assessment.iam.services.TenantService;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 @Validated
 @Slf4j
@@ -79,7 +80,7 @@ public class MigrationController {
 
     @Transactional
     @PostMapping("/init-question-automation")
-    @PreAuthorize("hasAnyRole('ROLE_TENANT_ADMIN', 'ROLE_USER_ADMIN', 'ROLE_STAFF')")
+	@PreAuthorize("hasAnyRole('ROLE_TENANT_ADMIN', 'ROLE_USER_ADMIN')")
     public Map<String, Object> intiQuestionAutomation(@RequestParam String inputLocation,
                                                       @RequestParam (required = false, defaultValue = "10") int parallel,
                                                       @RequestParam (required = false) Boolean removeHtmlContent) {
@@ -140,4 +141,58 @@ public class MigrationController {
         SecurityContext sc = SecurityContextHolder.getContext();
         sc.setAuthentication(auth);
     }
+
+	@Transactional
+	@PostMapping("/init-question-metadata-update")
+	@PreAuthorize("hasAnyRole('ROLE_TENANT_ADMIN', 'ROLE_USER_ADMIN')")
+	public Map<String, Object> initQuestionMetadataUpdateAutomation(@RequestParam String inputLocation,
+			@RequestParam(required = false, defaultValue = "10") int parallel) {
+		try {
+			if (parallel <= 0 || parallel > 10)
+				parallel = 10;
+
+			String requestId = UUID.randomUUID().toString();
+			String basePath = ConfigUtility.instance().getProperty("user.dir") + File.separator + "data"
+					+ File.separator + "question-metadata-update" + File.separator + requestId;
+			String error = basePath + File.separator + "error";
+			String output = basePath + File.separator + "output";
+			String archive = basePath + File.separator + "archive";
+
+			com.google.common.io.Files.createParentDirs(new File(error + File.separator + "tmp.log"));
+			com.google.common.io.Files.createParentDirs(new File(output + File.separator + "tmp.log"));
+			com.google.common.io.Files.createParentDirs(new File(archive + File.separator + "tmp.log"));
+
+			List<Path> paths = Files.list(Paths.get(inputLocation)).collect(Collectors.toList());
+			ThreadPoolExecutor executor = new ThreadPoolExecutor(parallel, parallel, 10, TimeUnit.DAYS,
+					new ArrayBlockingQueue<>(10_000));
+			paths.forEach(item -> executor
+					.execute(() -> executeQuestionMetadataUpdate(item, error, output, archive)));
+
+			Map<String, Object> response = new HashMap<String, Object>() {
+				{
+					put("requestId", requestId);
+					put("inputDir", inputLocation);
+					put("outputDir", output);
+					put("errorDir", error);
+					put("fileCount", paths.size());
+				}
+			};
+			return response;
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+		}
+	}
+
+	private void executeQuestionMetadataUpdate(Path inputFile, String errorDir, String outputDir,
+			String archiveDir) {
+		List<Tenant> tenants = tenantService.listAllTenants();
+		for (Tenant tenant : tenants) {
+			String internalTenant = ConfigUtility.instance().getProperty("app.system.tenant");
+			if (tenant.getId().equalsIgnoreCase(internalTenant))
+				continue;
+			login(tenant);
+
+			service.intiQuestionMetadataUpdate(inputFile, errorDir, outputDir, archiveDir);
+		}
+	}
 }

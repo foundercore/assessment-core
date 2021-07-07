@@ -1,12 +1,13 @@
 package com.assessment.question;
 
-import com.opencsv.exceptions.CsvValidationException;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.opencsv.exceptions.CsvValidationException;
 
 @Validated
 public interface QuestionService {
@@ -24,6 +25,10 @@ public interface QuestionService {
     void bulkCreateQuestions(MultipartFile file) throws IOException, CsvValidationException;
 
     void initBulkCreationQuestion(String fileName) throws IOException, CsvValidationException;
+
+	void metadataQuestionBulkUpdate(MultipartFile file) throws IOException, CsvValidationException;
+
+	void initMetadataQuestionBulkUpdate(String filePath) throws IOException, CsvValidationException;
 
     boolean exists(String id);
 
