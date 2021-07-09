@@ -66,6 +66,10 @@ public class SubmissionResponseDto {
         private int timeElapsedInSec;
         private boolean markForReview;
         private String explanation;
+		private String subject;
+		private String topic;
+		private String subTopic;
+		private String difficultyLevel;
     }
 
     @Data
