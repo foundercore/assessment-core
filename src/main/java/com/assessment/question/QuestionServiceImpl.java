@@ -898,14 +898,17 @@ public class QuestionServiceImpl implements QuestionService {
 			// get Passage object associated with Passage Id
 			Passage matchedPassage = StringUtils.isEmpty(passage) ? null
 					: qPassages.stream()
-					.filter(x -> passage.equalsIgnoreCase(StringUtility.html2text(x.getContent(), true))).findFirst()
+							.filter(x -> passage.replaceAll(" ", "").equalsIgnoreCase(
+									StringUtility.html2text(x.getContent(), true).replaceAll(" ", "")))
+							.findFirst()
 					.orElse(null);
 			// get question from the list if matched successfully based on Name and Passage
 			List<Question> mappedQuestion = questionsForFile.stream().filter(q -> {
 				if ((matchedPassage == null
 						|| (q.getPassageId() != null && q.getPassageId().equals(matchedPassage.getId().getPassageId())))
 						&& (StringUtils.isEmpty(questionName)
-								|| questionName.equals(StringUtility.html2text(q.getName(), true)))) {
+								|| questionName.replaceAll(" ", "").equals(StringUtility
+										.html2text(q.getName().replaceAll("<br>", ""), true).replaceAll(" ", "")))) {
 					return true;
 				}
 				return false;
