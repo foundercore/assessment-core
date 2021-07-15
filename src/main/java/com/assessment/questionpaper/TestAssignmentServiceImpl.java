@@ -574,7 +574,8 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
                             dto.setCorrectAnswerText(questionMap.get(qid).getAnswer().getAnswerText());
                             dto.setCorrectOptions(questionMap.get(qid).getAnswer().getOptions());
                             dto.setExplanation(questionMap.get(qid).getExplanation());
-                            dto.setSubject(questionMap.get(qid).getSubject());
+							dto.setPassage(questionMap.get(qid).getPassageContent());
+							dto.setSubject(questionMap.get(qid).getSubject());
                             dto.setTopic(questionMap.get(qid).getTopic());
                             dto.setSubTopic(questionMap.get(qid).getSubTopic());
 							dto.setDifficultyLevel(questionMap.get(qid).getDifficultyLevel());
