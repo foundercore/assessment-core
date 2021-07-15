@@ -88,6 +88,7 @@ public class QuestionPaperResponseDto {
         private double positiveMark = 0;
         private double negativeMark = 0;
         private double skipMark = 0;
+		private int sequenceNumber = 0;
     }
 
     @Data
