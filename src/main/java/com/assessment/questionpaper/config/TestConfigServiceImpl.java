@@ -138,6 +138,7 @@ public class TestConfigServiceImpl implements TestConfigService {
         question.setPositiveMark(dto.getPositiveMark());
         question.setNegativeMark(dto.getNegativeMark());
         question.setSkipMark(dto.getSkipMark());
+		question.setSequenceNumber(dto.getSequenceNumber());
         return question;
     }
 
@@ -900,6 +901,7 @@ public class TestConfigServiceImpl implements TestConfigService {
                         question.setPositiveMark(tq.getPositiveMark());
                         question.setNegativeMark(tq.getNegativeMark());
                         question.setSkipMark(tq.getSkipMark());
+						question.setSequenceNumber(tq.getSequenceNumber());
                         /* enrichment as asked */
                         if (questionMap.containsKey(tq.getId())){
                             question.setName(questionMap.get(tq.getId()).getName());
