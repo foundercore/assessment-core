@@ -210,7 +210,10 @@ public class QuestionServiceImpl implements QuestionService {
 
             /* passage field added due to avoid id conflict */
             /* migration fields added to do migration without missing anything from existing source. New files won't have these fields so it won't impact */
-            String idContent = String.valueOf(record.get("name")) + record.get("passage") + record.get("migration_test_id") + record.get("migration_section_id");
+			String idContent = String.valueOf(record.get("name")) + record.get("passage")
+					+ record.get("migration_test_id") + record.get("migration_section_id")
+					+ readOption(record.get("option_1")) + readOption(record.get("option_2"))
+					+ readOption(record.get("option_3")) + readOption(record.get("option_4"));
 
             id.setQuestionId(String.valueOf(StringUtility.zeroAllocationHash(idContent)));
             id.setTenantId(AuthUtils.getCurrentTenantId());
@@ -357,6 +360,10 @@ public class QuestionServiceImpl implements QuestionService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, error.toString());
         }
     }
+
+	private String readOption(Object option) {
+		return StringUtils.isNotEmpty(String.valueOf(option)) ? String.valueOf(option).trim() : "";
+	}
 
     @Override
     public boolean exists(String questionId) {
