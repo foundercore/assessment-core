@@ -1,18 +1,30 @@
 package com.assessment.common;
 
-import com.monitorjbl.xlsx.StreamingReader;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.hssf.usermodel.HSSFCell;
-import org.apache.poi.hssf.usermodel.HSSFDateUtil;
-import org.apache.poi.hssf.usermodel.HSSFRow;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.ss.usermodel.*;
-
-import java.io.*;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFDateUtil;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.FormulaEvaluator;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
+
+import com.monitorjbl.xlsx.StreamingReader;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class XLReader implements Iterator, Closeable, IFileDecoder {
@@ -181,7 +193,9 @@ public class XLReader implements Iterator, Closeable, IFileDecoder {
             case NUMERIC:
                 if (HSSFDateUtil.isCellDateFormatted(cell)) {
                     return cell.getDateCellValue();
-                } else {
+				} else if (cell.getCellStyle().getDataFormatString().equalsIgnoreCase("0%")) {
+					return cell.getStringCellValue();
+				} else {
                     return cell.getNumericCellValue();
 
                 }
@@ -218,6 +232,9 @@ public class XLReader implements Iterator, Closeable, IFileDecoder {
                 return cell.getStringCellValue();
             case NUMERIC:
                 if (HSSFDateUtil.isCellDateFormatted(cell)) return cell.getDateCellValue();
+				else if (cell.getCellStyle().getDataFormatString().equalsIgnoreCase("0%")) {
+					return cell.getStringCellValue();
+				}
                 else return cell.getNumericCellValue();
             case BLANK:
                 return null;
