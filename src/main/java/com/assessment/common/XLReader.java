@@ -193,11 +193,8 @@ public class XLReader implements Iterator, Closeable, IFileDecoder {
             case NUMERIC:
                 if (HSSFDateUtil.isCellDateFormatted(cell)) {
                     return cell.getDateCellValue();
-				} else if (cell.getCellStyle().getDataFormatString().equalsIgnoreCase("0%")) {
-					return cell.getStringCellValue();
 				} else {
-                    return cell.getNumericCellValue();
-
+					return cell.getStringCellValue();
                 }
             case BLANK:
                 return null;
