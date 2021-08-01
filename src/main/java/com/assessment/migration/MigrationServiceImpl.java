@@ -4,22 +4,37 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
+import com.assessment.common.CsvFileDecoder;
 import com.assessment.common.FileUtility;
+import com.assessment.common.IFileDecoder;
+import com.assessment.common.XLReader;
 import com.assessment.common.XLWriter;
 import com.assessment.iam.commons.AuthUtils;
+import com.assessment.question.Question;
 import com.assessment.question.QuestionService;
 import com.assessment.question.QuestionType;
+import com.assessment.questionpaper.config.TestConfigRepository;
+import com.assessment.questionpaper.config.TestConfigService;
+import com.assessment.questionpaper.entity.QuestionPaper;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Files;
+import com.opencsv.exceptions.CsvValidationException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,6 +44,15 @@ public class MigrationServiceImpl implements MigrationService {
 
     @Autowired
     QuestionService questionService;
+
+	@Autowired
+	TestConfigService testConfigService;
+
+	@Autowired
+	private MongoTemplate mongoTemplate;
+
+	@Autowired
+	TestConfigRepository testConfigRepository;
 
     @Override
     public File questionSchemaMigration(MultipartFile file, boolean removeHtmlContent) throws IOException {
@@ -238,4 +262,78 @@ public class MigrationServiceImpl implements MigrationService {
 			}
 		}
 	}
+
+	@Override
+	public void updateTestTags(MultipartFile file) throws IOException, CsvValidationException {
+		String directory = Files.createTempDir().getAbsolutePath() + File.separator + AuthUtils.getCurrentUsername()
+				+ File.separator + UUID.randomUUID().toString();
+		File tempFile = null;
+
+		try {
+			/* save file */
+			Files.createParentDirs(new File(directory + File.separator + "tmp.log"));
+			String fileName = file.getOriginalFilename();
+			fileName = directory + File.separator + fileName;
+			FileUtility.saveFile(file, fileName);
+			tempFile = new File(fileName);
+			updateTestTag(fileName);
+
+		} catch (IOException | CsvValidationException e) {
+			throw e;
+		} finally {
+			if (tempFile != null && tempFile.exists()) {
+				FileUtility.delete(tempFile);
+			}
+		}
+	}
+
+	public void updateTestTag(String fileName) throws IOException, CsvValidationException {
+		/* read file & load all question */
+		StringBuilder error = new StringBuilder();
+		List<Question> questions = new ArrayList<>();
+		IFileDecoder decoder;
+		if (fileName.endsWith(".csv")) {
+			decoder = new CsvFileDecoder(fileName);
+		} else if (fileName.endsWith(".xlsx") || fileName.endsWith(".xls")) {
+			decoder = new XLReader(fileName);
+		} else {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+					String.format("Unsupported file format. File - %s", fileName));
+		}
+		int rowCount = 0;
+		List<QuestionPaper> questionPapersToUpdate = new ArrayList<>();
+		List<String> questionPapersFailedToUpdate = new ArrayList<>();
+		while (decoder.hasNext()) {
+			rowCount++;
+			Map<String, Object> record = decoder.next();
+			String testName = String.valueOf(record.get("Name"));
+			List<QuestionPaper> questionPapers = null;
+			try {
+				Query query = new Query();
+				query.addCriteria(Criteria.where("name").is(testName));
+				questionPapers = mongoTemplate.find(query, QuestionPaper.class);
+				if (questionPapers == null || questionPapers.size() == 0) {
+					questionPapersFailedToUpdate.add(" No match found for : " + testName);
+				} else if (questionPapers.size() == 1) {
+					QuestionPaper questionPaper = questionPapers.get(0);
+					questionPaper.addTags(String.valueOf(record.get("Type")));
+					questionPaper.setType(String.valueOf(record.get("Type")));
+					questionPapersToUpdate.add(questionPaper);
+				} else {
+					questionPapersFailedToUpdate.add(" Duplicate match found for : " + testName);
+				}
+			} catch (Exception ex) {
+				log.error("Error while updating tag of test : " + testName, ex);
+				questionPapersFailedToUpdate.add(" Error processing : " + testName);
+			}
+
+		}
+
+		testConfigRepository.saveAll(questionPapersToUpdate);
+		if (questionPapersFailedToUpdate != null && questionPapersFailedToUpdate.size() > 1) {
+			log.error("Error while updating tag of test : " + questionPapersFailedToUpdate.stream()
+					.sorted(Comparator.naturalOrder()).collect(Collectors.joining(" . ")));
+		}
+	}
+
 }
