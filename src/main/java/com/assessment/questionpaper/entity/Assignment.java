@@ -1,6 +1,9 @@
 package com.assessment.questionpaper.entity;
 
-import lombok.Data;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -8,9 +11,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.assessment.questionpaper.dto.AssignmentResponseDto;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import lombok.Data;
 
 @Data
 @Document(collection = Assignment.COLLECTION_NAME)
@@ -36,6 +37,7 @@ public class Assignment {
     private String scoringType;     // possible values ?
     private List<String> absentUsers;   //who have missed test
     private List<String> tags;
+	private String testType;
 
     /* activity logs */
     private String createdBy;
@@ -67,6 +69,7 @@ public class Assignment {
         dto.setScoringType(this.scoringType);
         dto.setAbsentUsers(this.absentUsers);
         dto.setTags(this.tags);
+		dto.setTestType(this.testType);
         dto.setCreatedOn(this.createdOn);
         dto.setCreatedBy(this.createdBy);
         dto.setLastUpdatedOn(this.lastUpdatedOn);

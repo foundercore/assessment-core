@@ -1,9 +1,9 @@
 package com.assessment.questionpaper.dto;
 
-import lombok.Data;
-
 import java.util.Date;
 import java.util.List;
+
+import lombok.Data;
 
 @Data
 public class AssignmentResponseDto {
@@ -29,6 +29,7 @@ public class AssignmentResponseDto {
     private String scoringType;
     private List<String> absentUsers;
     private List<String> tags;
+	private String testType;
 
     /* activity logs */
     private String createdBy;

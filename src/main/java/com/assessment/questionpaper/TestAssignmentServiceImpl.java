@@ -285,7 +285,10 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
         if (!assignments.isEmpty()){
             for (Assignment assignment: assignments){
                 AssignmentResponseDto dto = assignment.toResponseDto();
-                dto.setTestName(testConfigService.getQuestionPaper(dto.getTestId()).getName());
+				QuestionPaperResponseDto questionPaper = testConfigService.getQuestionPaper(dto.getTestId());
+				dto.setTestName(questionPaper.getName());
+				dto.setTestType(questionPaper.getType());
+				dto.setTags(questionPaper.getTags());
                 /* enrich student submission state */
                 Submission submission = getSubmissionEntity(dto.getAssignmentId(), student.getUsername(), true);
                 if (submission != null){
