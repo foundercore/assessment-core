@@ -7,6 +7,8 @@ import java.nio.file.Path;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.opencsv.exceptions.CsvValidationException;
+
 @Validated
 public interface MigrationService {
 
@@ -15,4 +17,6 @@ public interface MigrationService {
     void intiAutomateQuestion(Path inputFile, boolean removeHtmlContent, String errorDir, String outputDir, String archiveDir);
 
 	void intiQuestionMetadataUpdate(Path inputFile, String errorDir, String outputDir, String archiveDir);
+
+	void updateTestTags(MultipartFile file) throws IOException, CsvValidationException;
 }

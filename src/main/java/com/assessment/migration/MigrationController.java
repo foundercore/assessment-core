@@ -1,6 +1,7 @@
 package com.assessment.migration;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -38,6 +39,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.assessment.common.ConfigUtility;
 import com.assessment.iam.entities.Tenant;
 import com.assessment.iam.services.TenantService;
+import com.opencsv.exceptions.CsvValidationException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -193,6 +195,19 @@ public class MigrationController {
 			login(tenant);
 
 			service.intiQuestionMetadataUpdate(inputFile, errorDir, outputDir, archiveDir);
+		}
+	}
+
+	@Transactional
+	@PostMapping("/update-test-tags")
+	@PreAuthorize("hasAnyRole('ROLE_TENANT_ADMIN', 'ROLE_USER_ADMIN')")
+	public void createQuestions(@RequestParam("file") MultipartFile file) {
+		try {
+			service.updateTestTags(file);
+		} catch (IOException | CsvValidationException e) {
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
 		}
 	}
 }
