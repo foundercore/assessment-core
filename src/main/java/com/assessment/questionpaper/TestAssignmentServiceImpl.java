@@ -3,10 +3,11 @@ package com.assessment.questionpaper;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import javax.validation.Validator;
 
@@ -261,43 +262,47 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
         }
 
         /* individual condition */
-        Criteria individual = Criteria.where("_id.tenantId").is(AuthUtils.getCurrentTenantId()).andOperator(Criteria.where("assignedToStudent").is(student.getUsername()));
+		Criteria individual = Criteria.where("_id.tenantId").is(AuthUtils.getCurrentTenantId())
+				.andOperator(Criteria.where("assignedToStudent").is(student.getUsername()));
 
         /* get individual assignments */
         Query query1 = new Query();
         query1.addCriteria(individual);
         List<Assignment> assignments = mongoTemplate.find(query1, Assignment.class);
 
-        List<String> keys = assignments.stream().map(a -> a.getId().getAssignmentId()).collect(Collectors.toList());
         /* get batch assignments */
         if (batch != null) {
             Query query2 = new Query();
             query2.addCriteria(batch);
             List<Assignment> result2 = mongoTemplate.find(query2, Assignment.class);
-            for (Assignment a: result2){
-                if (!keys.contains(a.getId().getAssignmentId())){
-                    assignments.add(a);
-                }
-            }
+			assignments.addAll(result2);
+
         }
 
         List<AssignmentResponseDto> responseDtos = new ArrayList<>();
+
         if (!assignments.isEmpty()){
+			Set<String> idsProcessed = new HashSet<String>();
             for (Assignment assignment: assignments){
+				if (idsProcessed.contains(assignment.getId().getAssignmentId())) {
+					continue;
+				} else {
+					idsProcessed.add(assignment.getId().getAssignmentId());
+				}
                 AssignmentResponseDto dto = assignment.toResponseDto();
-				QuestionPaperResponseDto questionPaper = testConfigService.getQuestionPaper(dto.getTestId());
+				QuestionPaper questionPaper = testConfigService.getEntity(dto.getTestId());
 				dto.setTestName(questionPaper.getName());
 				dto.setTestType(questionPaper.getType());
 				dto.setTags(questionPaper.getTags());
                 /* enrich student submission state */
-                Submission submission = getSubmissionEntity(dto.getAssignmentId(), student.getUsername(), true);
-                if (submission != null){
-                    dto.setAttempted(submission.isSubmitted());
-                    if (EvaluationState.COMPLETED.value().equalsIgnoreCase(submission.getEvaluation())){
-                        dto.setTotalMarks(submission.getSummary().getMetric().getTotalMarks());
-                        dto.setMarksReceived(submission.getSummary().getMetric().getMarksReceived());
-                    }
-                }
+				Submission submission = getSubmissionEntity(dto.getAssignmentId(), student.getUsername(), true);
+				if (submission != null) {
+					dto.setAttempted(submission.isSubmitted());
+					if (EvaluationState.COMPLETED.value().equalsIgnoreCase(submission.getEvaluation())) {
+						dto.setTotalMarks(submission.getSummary().getMetric().getTotalMarks());
+						dto.setMarksReceived(submission.getSummary().getMetric().getMarksReceived());
+					}
+				}
                 responseDtos.add(dto);
             }
         }
