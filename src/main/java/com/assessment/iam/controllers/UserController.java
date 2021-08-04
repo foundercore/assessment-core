@@ -140,7 +140,7 @@ public class UserController {
     public void deleteUser(@NotBlank @PathVariable("username") String userName) {
         List<StudentBatch> batches = null;
         try {
-            batches = studentBatchService.studentAssociatedBatches(getUser(userName).getEmail());
+            batches = studentBatchService.userAssociatedBatches(getUser(userName).getEmail());
         }catch (Exception ignored){}
 
         if (batches != null && !batches.isEmpty()){
@@ -164,7 +164,7 @@ public class UserController {
         List<String> failed = new ArrayList<>();
         for (String u: usernames){
             try {
-                List<StudentBatch> batches = studentBatchService.studentAssociatedBatches(getUser(u).getEmail());
+                List<StudentBatch> batches = studentBatchService.userAssociatedBatches(getUser(u).getEmail());
                 if (batches != null && !batches.isEmpty()) {
                     List<String> sb = new ArrayList<>();
                     for (StudentBatch s : batches) {
