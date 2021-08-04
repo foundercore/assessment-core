@@ -328,7 +328,7 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
         }
 
         /* assigned to batch check */
-        List<StudentBatch> batches = studentBatchService.studentAssociatedBatches(email);
+		List<StudentBatch> batches = studentBatchService.userAssociatedBatches(email);
         boolean isPartOfAssociatedBatch = false;
         for (StudentBatch batch: batches){
             if (assignment.getAssignedToBatch().contains(batch.getId().getBatchId())){
