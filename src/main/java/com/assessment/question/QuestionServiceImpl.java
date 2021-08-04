@@ -437,19 +437,20 @@ public class QuestionServiceImpl implements QuestionService {
 		// if question is associated to a test which is not in Draft State , do not
 		// update these fields
 		if (!isQuestionAssocatedToNonDraftQuestionPaper) {
-			currentQuestion.setName(question.getName());
-			currentQuestion.setDescription(question.getDescription());
-			currentQuestion.setType(question.getType());
-			currentQuestion.setPassageId(question.getPassageId());
-			currentQuestion.setPassageContent(question.getPassageContent());
-			currentQuestion.setOptions(question.getOptions());
-			currentQuestion.setAnswer(question.getAnswer());
-			currentQuestion.setPositiveMark(question.getPositiveMark());
-			currentQuestion.setNegativeMark(question.getNegativeMark());
-			currentQuestion.setSkipMark(question.getSkipMark());
-			currentQuestion.setReference(question.getReference());
-			currentQuestion.setExplanation(question.getExplanation());
+			// edit every thing. keep this for future reference.
 		}
+		currentQuestion.setName(question.getName());
+		currentQuestion.setDescription(question.getDescription());
+		currentQuestion.setType(question.getType());
+		currentQuestion.setPassageId(question.getPassageId());
+		currentQuestion.setPassageContent(question.getPassageContent());
+		currentQuestion.setOptions(question.getOptions());
+		currentQuestion.setAnswer(question.getAnswer());
+		currentQuestion.setPositiveMark(question.getPositiveMark());
+		currentQuestion.setNegativeMark(question.getNegativeMark());
+		currentQuestion.setSkipMark(question.getSkipMark());
+		currentQuestion.setReference(question.getReference());
+		currentQuestion.setExplanation(question.getExplanation());
         currentQuestion.setTopic(question.getTopic());
         currentQuestion.setSubTopic(question.getSubTopic());
 		currentQuestion.setTags(question.getTags());
