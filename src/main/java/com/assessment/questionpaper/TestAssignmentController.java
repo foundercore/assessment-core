@@ -1,24 +1,36 @@
 package com.assessment.questionpaper;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-
-import com.assessment.iam.commons.AuthUtils;
-import com.assessment.questionpaper.dto.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.validation.Valid;
 import javax.validation.Validator;
 import javax.validation.constraints.NotBlank;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.assessment.iam.commons.AuthUtils;
+import com.assessment.questionpaper.dto.AssignmentRequestDto;
+import com.assessment.questionpaper.dto.AssignmentResponseDto;
+import com.assessment.questionpaper.dto.SaveAnswerRequestDto;
+import com.assessment.questionpaper.dto.SubmissionResponseDto;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Validated
 @Slf4j
@@ -101,7 +113,7 @@ public class TestAssignmentController {
     }
 
     @GetMapping("/my-assignments")
-    @PreAuthorize("hasAnyRole('ROLE_STUDENT')")
+	@PreAuthorize("hasAnyRole('ROLE_TENANT_ADMIN', 'ROLE_USER_ADMIN', 'ROLE_STAFF', 'ROLE_STUDENT')")
     public List<AssignmentResponseDto> listMyAssignments(){
         return service.listMyAssignments();
     }
