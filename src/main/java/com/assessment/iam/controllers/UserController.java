@@ -1,5 +1,44 @@
 package com.assessment.iam.controllers;
 
+import static java.util.stream.Collectors.toList;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.mail.MessagingException;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import javax.validation.Valid;
+import javax.validation.Validator;
+import javax.validation.constraints.NotBlank;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
+
 import com.assessment.common.StringUtility;
 import com.assessment.common.validations.ValidDisplayName;
 import com.assessment.iam.commons.AuthUtils;
@@ -14,28 +53,6 @@ import com.assessment.studentbatch.StudentBatchService;
 import com.opencsv.exceptions.CsvValidationException;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
-
-import javax.mail.MessagingException;
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
-import javax.validation.Valid;
-import javax.validation.Validator;
-import javax.validation.constraints.NotBlank;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.*;
 
 @Validated
 @Slf4j
@@ -246,6 +263,17 @@ public class UserController {
         userService.updatePassword(AuthUtils.getCurrentQualifiedUsername(), newPassword);
     }
 
+	@PutMapping("/update/password/id")
+	@PreAuthorize("hasAnyRole('ROLE_TENANT_ADMIN', 'ROLE_USER_ADMIN')")
+	public void updatePasswordById(@NotBlank @RequestParam String userId, @NotBlank @RequestParam String newPassword) {
+		if ("admin@demo.com".equalsIgnoreCase(userId)) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Action Not Allowed");
+		}
+		if (userService.isBotUser(userId)) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can not change state of system user");
+		}
+		userService.updatePassword(userId, newPassword);
+	}
     @PutMapping("/public/forgot-password")
     public void forgotPassword(@NotBlank @RequestBody String emailId) {
         try {
