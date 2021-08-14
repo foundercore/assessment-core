@@ -1,6 +1,10 @@
 package com.assessment.questionpaper;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -13,14 +17,12 @@ import com.assessment.iam.entities.User;
 import com.assessment.iam.services.UserService;
 import com.assessment.question.QuestionService;
 import com.assessment.questionpaper.config.TestConfigRepository;
+import com.assessment.questionpaper.dto.EvaluationState;
 import com.assessment.questionpaper.entity.Submission;
 import com.assessment.studentbatch.StudentBatch;
 import com.assessment.studentbatch.StudentBatchService;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -97,6 +99,8 @@ public class TestReportServiceImpl implements TestReportService {
 
         List<Map<String, Object>> response = new ArrayList<>();
         for (Submission submission: submissions){
+			if (submission.isSubmitted() && submission.getEvaluation() != null
+					&& submission.getEvaluation().equals(EvaluationState.COMPLETED.value())) {
             Map<String, Object> record = new HashMap<>();
             User user = userService.getUser(submission.getStudentId()).orElse(null);
             if (user != null){
@@ -107,6 +111,7 @@ public class TestReportServiceImpl implements TestReportService {
             record.put("marksReceived", submission.getSummary().getMetric().getMarksReceived());
             record.put("totalMarks", submission.getSummary().getMetric().getTotalMarks());
             response.add(record);
+		}
         }
         return response;
     }

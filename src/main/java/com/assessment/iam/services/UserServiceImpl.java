@@ -1,11 +1,14 @@
 package com.assessment.iam.services;
 
+import static java.util.stream.Collectors.toList;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -21,6 +24,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -40,6 +46,9 @@ import com.assessment.common.FileUtility;
 import com.assessment.common.StringUtility;
 import com.assessment.iam.commons.AuthUtils;
 import com.assessment.iam.dtos.AppRole;
+import com.assessment.iam.dtos.UserPaginatedResponse;
+import com.assessment.iam.dtos.UserResponseDto;
+import com.assessment.iam.dtos.UserSearchRequestDto;
 import com.assessment.iam.dtos.UserUpdateRequestDto;
 import com.assessment.iam.entities.Tenant;
 import com.assessment.iam.entities.User;
@@ -60,6 +69,9 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
+
+	@Autowired
+	private MongoTemplate mongoTemplate;
 
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
@@ -272,8 +284,10 @@ public class UserServiceImpl implements UserDetailsService, UserService {
     @Override
     @Transactional(readOnly = true)
     @PreAuthorize("hasAnyRole('ROLE_TENANT_ADMIN', 'ROLE_USER_ADMIN')")
-    public List<User> listAllUsers() {
-        return userRepository.findAllByUserNameEndsWith("@" + AuthUtils.getCurrentTenantId());
+	public List<UserResponseDto> listAllUsers() {
+		return userRepository.findAllByUserNameEndsWith("@" + AuthUtils.getCurrentTenantId()).stream().map(user -> {
+			return prepareUserResponseDto(user);
+		}).sorted(Comparator.comparing(UserResponseDto::getUserName)).collect(toList());
     }
 
     @Override
@@ -558,4 +572,90 @@ public class UserServiceImpl implements UserDetailsService, UserService {
                     String.format("Invalid Organization Id in fully qualified user name, expecting %s.", currentTenantId));
         }
     }
+
+	@Override
+	@Transactional(readOnly = true)
+	@PreAuthorize("hasAnyRole('ROLE_TENANT_ADMIN', 'ROLE_USER_ADMIN')")
+	public UserPaginatedResponse searchUsers(UserSearchRequestDto filter) {
+		if (filter.getPageNumber() <= 0) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+					String.format("Invalid page number - %s", filter.getPageNumber()));
+		}
+
+		if (StringUtils.isNotEmpty(filter.getUserId())) {
+			User loggedInUser = userRepository.findById(filter.getUserId())
+					.orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN,
+							String.format("User with user name %s not found!", filter.getUserId())));
+			UserPaginatedResponse response = new UserPaginatedResponse();
+			response.setPageSize(1);
+			response.setTotalRecords(1);
+			response.setPageNumber(1);
+			response.setUsers(Arrays.asList(prepareUserResponseDto(loggedInUser)));
+			return response;
+		}
+
+		Query query = new Query();
+		/* prepare request filters */
+		if (StringUtils.isNotEmpty(filter.searchStringRegexPattern)) {
+			Criteria criteria = new Criteria();
+			criteria.orOperator(Criteria.where("firstName").regex(filter.searchStringRegexPattern, "i"),
+					Criteria.where("email").regex(filter.searchStringRegexPattern, "i"),
+					Criteria.where("lastName").regex(filter.searchStringRegexPattern, "i"));
+			query.addCriteria(criteria);
+		}
+
+		int limit = filter.getPageSize() > 0 && filter.getPageSize() <= 100 ? filter.getPageSize() : 100;
+
+		/* get page specific records */
+		int actualPage = filter.getPageNumber() > 0 ? filter.getPageNumber() : 1;
+		long skipRecords = 0;
+		if (actualPage > 1) {
+			skipRecords = (long) (actualPage - 1) * limit;
+		}
+
+		/* get total record */
+		long totalRecords = mongoTemplate.count(query, User.class);
+
+		/* limit */
+		if (skipRecords > 0) {
+			query.skip(skipRecords);
+		}
+		query.limit(limit);
+
+		/* response schema */
+		List<UserResponseDto> dtos = new ArrayList<>();
+		UserPaginatedResponse response = new UserPaginatedResponse();
+		response.setPageSize(limit);
+		response.setTotalRecords(totalRecords);
+		response.setPageNumber(actualPage);
+		response.setUsers(dtos);
+		/* execute query & prepare response */
+		if (totalRecords > 0) {
+			List<User> questionPapers = mongoTemplate.find(query, User.class);
+			questionPapers.forEach(qp -> dtos.add(prepareUserResponseDto(qp)));
+
+		}
+		return response;
+	}
+
+	@Override
+	public UserResponseDto prepareUserResponseDto(User user) {
+		UserResponseDto userResponseDto = new UserResponseDto();
+		userResponseDto.setUserName(user.getUsername());
+		userResponseDto.setDisplayName(user.getDisplayName());
+		userResponseDto.setEnabled(user.isEnabled());
+		userResponseDto.setEmail(user.getEmail());
+		userResponseDto.setFirstName(user.getFirstName());
+		userResponseDto.setLastName(user.getLastName());
+		userResponseDto.setGender(user.getGender());
+		userResponseDto.setAddress(user.getAddress());
+		userResponseDto.setState(user.getState());
+		userResponseDto.setLastUpdatedOn(user.getLastUpdatedOn());
+		userResponseDto.setLastUpdatedBy(user.getLastUpdatedBy());
+		userResponseDto.setRoles(user.getRoles());
+		userResponseDto.setAcceptedTerms(user.isAcceptedTerms());
+		userResponseDto.setAcceptedTermsOn(user.getAcceptedTermsOn());
+
+		return userResponseDto;
+	}
 }

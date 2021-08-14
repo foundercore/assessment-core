@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -44,7 +43,9 @@ import com.assessment.common.validations.ValidDisplayName;
 import com.assessment.iam.commons.AuthUtils;
 import com.assessment.iam.dtos.AppRole;
 import com.assessment.iam.dtos.UserCreateRequestDto;
+import com.assessment.iam.dtos.UserPaginatedResponse;
 import com.assessment.iam.dtos.UserResponseDto;
+import com.assessment.iam.dtos.UserSearchRequestDto;
 import com.assessment.iam.dtos.UserUpdateRequestDto;
 import com.assessment.iam.entities.User;
 import com.assessment.iam.services.UserService;
@@ -136,20 +137,20 @@ public class UserController {
     @PreAuthorize("hasAnyRole('ROLE_TENANT_ADMIN', 'ROLE_USER_ADMIN')")
     public UserResponseDto getUser(@NotBlank @PathVariable("username") String userName) {
         User user = userService.getUser(userName).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("User with username %s not found", userName)));
-        return prepareUserResponseDto(user);
+		return userService.prepareUserResponseDto(user);
     }
 
     @GetMapping("/by-email/{email-id}")
     @PreAuthorize("hasAnyRole('ROLE_TENANT_ADMIN', 'ROLE_USER_ADMIN')")
     public UserResponseDto getUserByEmailId(@NotBlank @PathVariable("email-id") String emailId) {
         User user = userService.getUserByEmail(emailId);
-        return prepareUserResponseDto(user);
+		return userService.prepareUserResponseDto(user);
     }
 
     @GetMapping("/my/profile")
     public UserResponseDto getMyProfile() {
         User user = userService.getLoggedInUserDetails();
-        return prepareUserResponseDto(user);
+		return userService.prepareUserResponseDto(user);
     }
 
     @DeleteMapping("/{username}")
@@ -297,23 +298,13 @@ public class UserController {
     @GetMapping
     @PreAuthorize("hasAnyRole('ROLE_TENANT_ADMIN', 'ROLE_USER_ADMIN')")
     public List<UserResponseDto> listUsers() {
-        return userService.listAllUsers().stream()
-                .map(user -> {
-                    return prepareUserResponseDto(user);
-                })
-                .sorted(Comparator.comparing(UserResponseDto::getUserName))
-                .collect(toList());
+		return userService.listAllUsers();
     }
 
     @GetMapping("/by-role/{role-name}")
     @PreAuthorize("hasAnyRole('ROLE_TENANT_ADMIN', 'ROLE_USER_ADMIN')")
     public List<UserResponseDto> listUsersByRole(@NotBlank @PathVariable("role-name") String roleName) {
-        return userService.listAllUsers().stream().filter(user-> user.getRoles().contains(roleName))
-                .map(user -> {
-                    return prepareUserResponseDto(user);
-                })
-                .sorted(Comparator.comparing(UserResponseDto::getUserName))
-                .collect(toList());
+		return userService.listAllUsers().stream().filter(user -> user.getRoles().contains(roleName)).collect(toList());
     }
 
     @GetMapping("/{username}/roles")
@@ -328,23 +319,12 @@ public class UserController {
         return AppRole.getRoles(false);
     }
 
-    public UserResponseDto prepareUserResponseDto(User user) {
-        UserResponseDto userResponseDto = new UserResponseDto();
-        userResponseDto.setUserName(user.getUsername());
-        userResponseDto.setDisplayName(user.getDisplayName());
-        userResponseDto.setEnabled(user.isEnabled());
-        userResponseDto.setEmail(user.getEmail());
-        userResponseDto.setFirstName(user.getFirstName());
-        userResponseDto.setLastName(user.getLastName());
-        userResponseDto.setGender(user.getGender());
-        userResponseDto.setAddress(user.getAddress());
-        userResponseDto.setState(user.getState());
-        userResponseDto.setLastUpdatedOn(user.getLastUpdatedOn());
-        userResponseDto.setLastUpdatedBy(user.getLastUpdatedBy());
-        userResponseDto.setRoles(user.getRoles());
-        userResponseDto.setAcceptedTerms(user.isAcceptedTerms());
-        userResponseDto.setAcceptedTermsOn(user.getAcceptedTermsOn());
-        
-        return userResponseDto;
-    }
+
+
+	@PostMapping("/users")
+	@PreAuthorize("hasAnyRole('ROLE_TENANT_ADMIN', 'ROLE_USER_ADMIN')")
+	public UserPaginatedResponse searchUsers(@RequestBody UserSearchRequestDto userSearchRequestDto) {
+		return userService.searchUsers(userSearchRequestDto);
+	}
+
 }
