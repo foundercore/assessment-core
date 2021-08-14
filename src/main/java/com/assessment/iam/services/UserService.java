@@ -1,23 +1,26 @@
 package com.assessment.iam.services;
 
-import com.assessment.common.validations.ValidDisplayName;
-import com.assessment.iam.dtos.UserUpdateRequestDto;
-import com.assessment.iam.entities.User;
-import com.opencsv.exceptions.CsvValidationException;
-
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.multipart.MultipartFile;
-
-
-import javax.mail.MessagingException;
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import javax.mail.MessagingException;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.assessment.common.validations.ValidDisplayName;
+import com.assessment.iam.dtos.UserPaginatedResponse;
+import com.assessment.iam.dtos.UserResponseDto;
+import com.assessment.iam.dtos.UserSearchRequestDto;
+import com.assessment.iam.dtos.UserUpdateRequestDto;
+import com.assessment.iam.entities.User;
+import com.opencsv.exceptions.CsvValidationException;
 
 @Validated
 public interface UserService {
@@ -41,7 +44,7 @@ public interface UserService {
 
     void deleteUser(@NotBlank String userName);
 
-    List<User> listAllUsers();
+	List<UserResponseDto> listAllUsers();
 
     void addRole(@NotBlank String userName, @NotBlank String role);
 
@@ -58,4 +61,8 @@ public interface UserService {
     Map<String,?> bulkDeleteUsers(List<String> usernames);
 
     boolean isBotUser(String userId);
+
+	UserPaginatedResponse searchUsers(UserSearchRequestDto userSearchRequestDto);
+
+	UserResponseDto prepareUserResponseDto(User user);
 }

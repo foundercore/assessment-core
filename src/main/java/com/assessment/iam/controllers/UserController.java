@@ -1,11 +1,51 @@
 package com.assessment.iam.controllers;
 
+import static java.util.stream.Collectors.toList;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.mail.MessagingException;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import javax.validation.Valid;
+import javax.validation.Validator;
+import javax.validation.constraints.NotBlank;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
+
 import com.assessment.common.StringUtility;
 import com.assessment.common.validations.ValidDisplayName;
 import com.assessment.iam.commons.AuthUtils;
 import com.assessment.iam.dtos.AppRole;
 import com.assessment.iam.dtos.UserCreateRequestDto;
+import com.assessment.iam.dtos.UserPaginatedResponse;
 import com.assessment.iam.dtos.UserResponseDto;
+import com.assessment.iam.dtos.UserSearchRequestDto;
 import com.assessment.iam.dtos.UserUpdateRequestDto;
 import com.assessment.iam.entities.User;
 import com.assessment.iam.services.UserService;
@@ -14,28 +54,6 @@ import com.assessment.studentbatch.StudentBatchService;
 import com.opencsv.exceptions.CsvValidationException;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
-
-import javax.mail.MessagingException;
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
-import javax.validation.Valid;
-import javax.validation.Validator;
-import javax.validation.constraints.NotBlank;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.*;
 
 @Validated
 @Slf4j
@@ -119,20 +137,20 @@ public class UserController {
     @PreAuthorize("hasAnyRole('ROLE_TENANT_ADMIN', 'ROLE_USER_ADMIN')")
     public UserResponseDto getUser(@NotBlank @PathVariable("username") String userName) {
         User user = userService.getUser(userName).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("User with username %s not found", userName)));
-        return prepareUserResponseDto(user);
+		return userService.prepareUserResponseDto(user);
     }
 
     @GetMapping("/by-email/{email-id}")
     @PreAuthorize("hasAnyRole('ROLE_TENANT_ADMIN', 'ROLE_USER_ADMIN')")
     public UserResponseDto getUserByEmailId(@NotBlank @PathVariable("email-id") String emailId) {
         User user = userService.getUserByEmail(emailId);
-        return prepareUserResponseDto(user);
+		return userService.prepareUserResponseDto(user);
     }
 
     @GetMapping("/my/profile")
     public UserResponseDto getMyProfile() {
         User user = userService.getLoggedInUserDetails();
-        return prepareUserResponseDto(user);
+		return userService.prepareUserResponseDto(user);
     }
 
     @DeleteMapping("/{username}")
@@ -140,7 +158,7 @@ public class UserController {
     public void deleteUser(@NotBlank @PathVariable("username") String userName) {
         List<StudentBatch> batches = null;
         try {
-            batches = studentBatchService.studentAssociatedBatches(getUser(userName).getEmail());
+            batches = studentBatchService.userAssociatedBatches(getUser(userName).getEmail());
         }catch (Exception ignored){}
 
         if (batches != null && !batches.isEmpty()){
@@ -164,7 +182,7 @@ public class UserController {
         List<String> failed = new ArrayList<>();
         for (String u: usernames){
             try {
-                List<StudentBatch> batches = studentBatchService.studentAssociatedBatches(getUser(u).getEmail());
+                List<StudentBatch> batches = studentBatchService.userAssociatedBatches(getUser(u).getEmail());
                 if (batches != null && !batches.isEmpty()) {
                     List<String> sb = new ArrayList<>();
                     for (StudentBatch s : batches) {
@@ -246,6 +264,17 @@ public class UserController {
         userService.updatePassword(AuthUtils.getCurrentQualifiedUsername(), newPassword);
     }
 
+	@PutMapping("/update/password/id")
+	@PreAuthorize("hasAnyRole('ROLE_TENANT_ADMIN', 'ROLE_USER_ADMIN')")
+	public void updatePasswordById(@NotBlank @RequestParam String userId, @NotBlank @RequestParam String newPassword) {
+		if ("admin@demo.com".equalsIgnoreCase(userId)) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Action Not Allowed");
+		}
+		if (userService.isBotUser(userId)) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can not change state of system user");
+		}
+		userService.updatePassword(userId, newPassword);
+	}
     @PutMapping("/public/forgot-password")
     public void forgotPassword(@NotBlank @RequestBody String emailId) {
         try {
@@ -269,23 +298,13 @@ public class UserController {
     @GetMapping
     @PreAuthorize("hasAnyRole('ROLE_TENANT_ADMIN', 'ROLE_USER_ADMIN')")
     public List<UserResponseDto> listUsers() {
-        return userService.listAllUsers().stream()
-                .map(user -> {
-                    return prepareUserResponseDto(user);
-                })
-                .sorted(Comparator.comparing(UserResponseDto::getUserName))
-                .collect(toList());
+		return userService.listAllUsers();
     }
 
     @GetMapping("/by-role/{role-name}")
     @PreAuthorize("hasAnyRole('ROLE_TENANT_ADMIN', 'ROLE_USER_ADMIN')")
     public List<UserResponseDto> listUsersByRole(@NotBlank @PathVariable("role-name") String roleName) {
-        return userService.listAllUsers().stream().filter(user-> user.getRoles().contains(roleName))
-                .map(user -> {
-                    return prepareUserResponseDto(user);
-                })
-                .sorted(Comparator.comparing(UserResponseDto::getUserName))
-                .collect(toList());
+		return userService.listAllUsers().stream().filter(user -> user.getRoles().contains(roleName)).collect(toList());
     }
 
     @GetMapping("/{username}/roles")
@@ -300,23 +319,12 @@ public class UserController {
         return AppRole.getRoles(false);
     }
 
-    public UserResponseDto prepareUserResponseDto(User user) {
-        UserResponseDto userResponseDto = new UserResponseDto();
-        userResponseDto.setUserName(user.getUsername());
-        userResponseDto.setDisplayName(user.getDisplayName());
-        userResponseDto.setEnabled(user.isEnabled());
-        userResponseDto.setEmail(user.getEmail());
-        userResponseDto.setFirstName(user.getFirstName());
-        userResponseDto.setLastName(user.getLastName());
-        userResponseDto.setGender(user.getGender());
-        userResponseDto.setAddress(user.getAddress());
-        userResponseDto.setState(user.getState());
-        userResponseDto.setLastUpdatedOn(user.getLastUpdatedOn());
-        userResponseDto.setLastUpdatedBy(user.getLastUpdatedBy());
-        userResponseDto.setRoles(user.getRoles());
-        userResponseDto.setAcceptedTerms(user.isAcceptedTerms());
-        userResponseDto.setAcceptedTermsOn(user.getAcceptedTermsOn());
-        
-        return userResponseDto;
-    }
+
+
+	@PostMapping("/users")
+	@PreAuthorize("hasAnyRole('ROLE_TENANT_ADMIN', 'ROLE_USER_ADMIN')")
+	public UserPaginatedResponse searchUsers(@RequestBody UserSearchRequestDto userSearchRequestDto) {
+		return userService.searchUsers(userSearchRequestDto);
+	}
+
 }

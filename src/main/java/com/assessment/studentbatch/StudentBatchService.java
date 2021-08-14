@@ -11,7 +11,7 @@ public interface StudentBatchService {
 
     void removeStudentsFromBatch(StudentBatchId id, List<String> emails);
 
-    List<StudentBatch> studentAssociatedBatches(String emailId);
+    List<StudentBatch> userAssociatedBatches(String emailId);
 
     StudentBatch getStudentBatch(String batchId);
 }

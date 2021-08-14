@@ -1,5 +1,8 @@
 package com.assessment.studentbatch;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -12,9 +15,6 @@ import com.assessment.iam.commons.AuthUtils;
 import com.assessment.iam.dtos.AppRole;
 import com.assessment.iam.entities.User;
 import com.assessment.iam.services.UserService;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 public class StudentBatchServiceImpl implements StudentBatchService {
@@ -88,16 +88,12 @@ public class StudentBatchServiceImpl implements StudentBatchService {
     }
 
     @Override
-    public List<StudentBatch> studentAssociatedBatches(String emailId) {
+    public List<StudentBatch> userAssociatedBatches(String emailId) {
 
         if (emailId == null || emailId.isEmpty()){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Student detail not supplied.");
         }
         User user = userService.getUserByEmail(emailId);
-        if (!user.getRoles().contains(AppRole.ROLE_STUDENT.value())){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Not a student. Email - "+ emailId);
-        }
-
         Query query = new Query();
         query.addCriteria(Criteria.where("_id.tenantId").is(AuthUtils.getCurrentTenantId()));
         query.addCriteria(Criteria.where("students").is(emailId));
