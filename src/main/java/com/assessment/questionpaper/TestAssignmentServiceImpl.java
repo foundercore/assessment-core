@@ -751,23 +751,24 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
         List<String> students = new ArrayList<>();
         if (assignment.getAssignedToStudent() != null && !assignment.getAssignedToStudent().isEmpty()){
             students.addAll(assignment.getAssignedToStudent());
-        }else {
-            List<String> batches = assignment.getAssignedToBatch();
-            if (batches != null) {
-                for (String batchId : batches) {
-                    StudentBatch batch = studentBatchService.getStudentBatch(batchId);
-                    if (batch != null && batch.getStudents() != null) {
-                        for (String email : batch.getStudents()) {
-                            try {
-                                User user = userService.getUserByEmail(email);
-                                students.add(user.getUsername());
-                            } catch (Exception ignored) {
-                            }
+		}
+
+		List<String> batches = assignment.getAssignedToBatch();
+		if (batches != null) {
+			for (String batchId : batches) {
+				StudentBatch batch = studentBatchService.getStudentBatch(batchId);
+				if (batch != null && batch.getStudents() != null) {
+					for (String email : batch.getStudents()) {
+						try {
+							User user = userService.getUserByEmail(email);
+							students.add(user.getUsername());
+						} catch (Exception ignored) {
                         }
                     }
                 }
             }
-        }
+		}
+
         return students;
     }
 
