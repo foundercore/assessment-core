@@ -65,4 +65,8 @@ public class StringUtility {
             return html;
         }
     }
+
+	public static Double parseStringToOptionalDouble(String value) {
+		return value == null || value.isEmpty() || value.equals("null") ? 0.0 : Double.valueOf(value);
+	}
 }

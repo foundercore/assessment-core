@@ -154,6 +154,7 @@ public class QuestionPaper {
         private int reasoning;
         private int comprehension;
         private int aptitude;
+		private PercentileScoreCard percentileScoreCard = new PercentileScoreCard();
 
         public QuestionPaperResponseDto.TestControlParamsResponseDto toResponseDto(){
             QuestionPaperResponseDto.TestControlParamsResponseDto response = new QuestionPaperResponseDto.TestControlParamsResponseDto();
@@ -184,7 +185,11 @@ public class QuestionPaper {
             response.setReasoning(this.reasoning);
             response.setComprehension(this.comprehension);
             response.setAptitude(this.aptitude);
+
+			response.setPercentileScoreCard(this.percentileScoreCard);
             return response;
         }
     }
+
+
 }
