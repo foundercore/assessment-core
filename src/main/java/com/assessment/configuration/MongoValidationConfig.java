@@ -1,7 +1,9 @@
 package com.assessment.configuration;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.mapping.event.ValidatingMongoEventListener;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 //enables jsr validtions in spring mongo.
@@ -12,4 +14,9 @@ public class MongoValidationConfig {
     public ValidatingMongoEventListener validatingMongoEventListener(LocalValidatorFactoryBean factory) {
         return new ValidatingMongoEventListener(factory);
     }
+
+	@Autowired
+	void setMapKeyDotReplacement(MappingMongoConverter mappingMongoConverter) {
+		mappingMongoConverter.setMapKeyDotReplacement("#dot#");
+	}
 }

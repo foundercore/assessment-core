@@ -1,15 +1,16 @@
 package com.assessment.questionpaper.config;
 
+import java.util.List;
+
 import org.springframework.validation.annotation.Validated;
 
 import com.assessment.question.Question;
 import com.assessment.questionpaper.dto.QuestionPaperPaginatedResponse;
 import com.assessment.questionpaper.dto.QuestionPaperRequestDto;
+import com.assessment.questionpaper.dto.QuestionPaperRequestDto.TestControlParamsRequestDto;
 import com.assessment.questionpaper.dto.QuestionPaperResponseDto;
 import com.assessment.questionpaper.dto.SearchQuestionPaperDto;
 import com.assessment.questionpaper.entity.QuestionPaper;
-
-import java.util.List;
 
 @Validated
 public interface TestConfigService {
@@ -60,5 +61,5 @@ public interface TestConfigService {
 
     List<String> getQuestionPaperSubjects();
 
-    void updateTestControlParams(String paperId, QuestionPaper.TestControlParams controlParams);
+	void updateTestControlParams(String paperId, TestControlParamsRequestDto controlParams);
 }

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.assessment.questionpaper.entity.PercentileScoreCard;
+
 import lombok.Data;
 
 @Data
@@ -128,5 +130,6 @@ public class QuestionPaperResponseDto {
         private int reasoning;
         private int comprehension;
         private int aptitude;
+		private PercentileScoreCard percentileScoreCard = new PercentileScoreCard();
     }
 }

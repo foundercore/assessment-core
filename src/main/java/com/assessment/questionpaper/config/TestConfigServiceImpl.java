@@ -1,5 +1,8 @@
 package com.assessment.questionpaper.config;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -21,21 +24,30 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.assessment.common.FileUtility;
+import com.assessment.common.IFileDecoder;
 import com.assessment.common.StringUtility;
 import com.assessment.common.TimeUtility;
+import com.assessment.common.XLReader;
 import com.assessment.iam.commons.AuthUtils;
 import com.assessment.iam.dtos.AppRole;
 import com.assessment.question.Question;
 import com.assessment.question.QuestionService;
 import com.assessment.questionpaper.dto.QuestionPaperPaginatedResponse;
 import com.assessment.questionpaper.dto.QuestionPaperRequestDto;
+import com.assessment.questionpaper.dto.QuestionPaperRequestDto.TestControlParamsRequestDto;
 import com.assessment.questionpaper.dto.QuestionPaperResponseDto;
 import com.assessment.questionpaper.dto.QuestionPaperStatus;
 import com.assessment.questionpaper.dto.SearchQuestionPaperDto;
+import com.assessment.questionpaper.entity.PercentileScoreCard;
 import com.assessment.questionpaper.entity.QuestionPaper;
+import com.assessment.questionpaper.entity.QuestionPaper.TestControlParams;
 import com.assessment.questionpaper.entity.QuestionPaperId;
+import com.google.common.io.Files;
+import com.opencsv.exceptions.CsvValidationException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -836,7 +848,7 @@ public class TestConfigServiceImpl implements TestConfigService {
     }
 
     @Override
-    public void updateTestControlParams(String paperId, QuestionPaper.TestControlParams controlParams) {
+	public void updateTestControlParams(String paperId, TestControlParamsRequestDto controlParams) {
         QuestionPaperId id = new QuestionPaperId();
         id.setTenantId(AuthUtils.getCurrentTenantId());
         id.setQuestionPaperId(paperId);
@@ -847,10 +859,119 @@ public class TestConfigServiceImpl implements TestConfigService {
         if(controlParams == null){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Control params missing. Nothing to update.");
         }
-        questionPaper.setControlParam(controlParams);
-        testConfigRepository.save(questionPaper);
+
+		try {
+			questionPaper.setControlParam(getControlParamWithPercentileData(controlParams, questionPaper));
+			testConfigRepository.save(questionPaper);
+		} catch (CsvValidationException | IOException e) {
+			e.printStackTrace();
+			throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE,
+					"Control params invalid. Error Message : " + e.getMessage());
+		}
+
     }
 
+	private TestControlParams getControlParamWithPercentileData(TestControlParamsRequestDto controlParamsRequestDto,
+			QuestionPaper questionPaper) throws CsvValidationException, IOException {
+		TestControlParams controlParams = questionPaper.getControlParam() != null ? questionPaper.getControlParam()
+				: new TestControlParams();
+		// if file exists just update the file
+		if (controlParamsRequestDto.getPercentileFile() != null) {
+			controlParams.setPercentileScoreCard(
+					readPercentileFile(controlParamsRequestDto.getPercentileFile(), questionPaper));
+		} else {
+			// update individual attributes
+			controlParams.setAllowCalculator(controlParams.isAllowCalculator());
+			controlParams.setDoNotShowReport(controlParams.isDoNotShowReport());
+			controlParams.setPercentile(controlParams.isPercentile());
+		}
+		return controlParams;
+	}
+
+	public PercentileScoreCard readPercentileFile(MultipartFile file, QuestionPaper questionPaper)
+			throws IOException, CsvValidationException {
+		String directory = Files.createTempDir().getAbsolutePath() + File.separator + AuthUtils.getCurrentUsername()
+				+ File.separator + UUID.randomUUID().toString();
+		File tempFile = null;
+
+		try {
+			/* save file */
+			Files.createParentDirs(new File(directory + File.separator + "tmp.log"));
+			String fileName = file.getOriginalFilename();
+			fileName = directory + File.separator + fileName;
+			FileUtility.saveFile(file, fileName);
+			tempFile = new File(fileName);
+			/* read percentile file */
+			return initReadingPercentileFile(fileName, questionPaper);
+		} catch (IOException e) {
+			log.error("Error reading percentile file.", e);
+			throw e;
+		} finally {
+			if (tempFile != null && tempFile.exists()) {
+				FileUtility.delete(tempFile);
+			}
+		}
+	}
+
+	public PercentileScoreCard initReadingPercentileFile(String fileName, QuestionPaper questionPaper)
+			throws IOException, CsvValidationException {
+		/* read file & load all Percentile score */
+		IFileDecoder decoder;
+		if (fileName.endsWith(".xlsx") || fileName.endsWith(".xls")) {
+			decoder = new XLReader(fileName);
+		} else {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+					String.format("Unsupported file format. File - %s", fileName));
+		}
+		int rowCount = 0;
+		PercentileScoreCard percentileScoreCard = new PercentileScoreCard();
+		percentileScoreCard.setFileName(Paths.get(fileName).getFileName().toString());
+		percentileScoreCard.setTestId(questionPaper.getId().getQuestionPaperId());
+		percentileScoreCard.setTestName(questionPaper.getName());
+
+		List<String> sectionNames = new ArrayList<>();
+		questionPaper.getSections().values().forEach(section -> {
+			sectionNames.add(section.getName());
+		});
+		while (decoder.hasNext()) {
+			rowCount++;
+			Map<String, Object> record = decoder.next();
+
+			/*
+			 * read the test marks!!!
+			 */
+			Double testMark = StringUtility.parseStringToOptionalDouble(String.valueOf(record.get("Test Marks")));
+			Double testPercentileMark = StringUtility
+					.parseStringToOptionalDouble(String.valueOf(record.get("Test Percentile")));
+			if (testMark != null) {
+				percentileScoreCard.getTestLevelPercentile().put(testMark, testPercentileMark);
+			}
+
+			/*
+			 * read section marks
+			 */
+			for (String section : sectionNames) {
+				Double sectionMark = StringUtility
+						.parseStringToOptionalDouble(String.valueOf(record.get(section + " Marks")));
+				Double sectionPercentileMark = StringUtility
+						.parseStringToOptionalDouble(String.valueOf(record.get(section + " Percentile")));
+				if (sectionMark != null) {
+					if(percentileScoreCard.getSectionLevelPercentile().get(section)!=null) {
+					percentileScoreCard.getSectionLevelPercentile().get(section).put(sectionMark,
+							sectionPercentileMark);
+					}else {
+						percentileScoreCard.getSectionLevelPercentile().put(section, new HashMap<>());
+						percentileScoreCard.getSectionLevelPercentile().get(section).put(sectionMark,
+								sectionPercentileMark);
+					}
+				}
+			}
+
+		}
+		decoder.close();
+		return percentileScoreCard;
+
+	}
 	private QuestionPaperResponseDto buildQuestionPaperResponse(QuestionPaper qp, boolean detailed) {
 
 

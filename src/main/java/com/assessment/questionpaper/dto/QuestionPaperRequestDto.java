@@ -5,6 +5,8 @@ import java.util.List;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import lombok.Data;
 
 @Data
@@ -50,4 +52,13 @@ public class QuestionPaperRequestDto {
         private double skipMark = 0;
 		private int sequenceNumber = 0;
     }
+
+	@Data
+	public static class TestControlParamsRequestDto {
+		private boolean doNotShowReport;
+		private boolean percentile;
+		private boolean allowCalculator;
+		private boolean shuffleQuestions;
+		private MultipartFile percentileFile;
+	}
 }

@@ -966,7 +966,9 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
     }
 
     private String getDifficultyLevel(String input){
-        if (DifficultyLevel.MEDIUM.value().equalsIgnoreCase(input)){
+		if (DifficultyLevel.VERY_HARD.value().equalsIgnoreCase(input)) {
+			return DifficultyLevel.VERY_HARD.value();
+		} else if (DifficultyLevel.MEDIUM.value().equalsIgnoreCase(input)) {
             return DifficultyLevel.MEDIUM.value();
         }else if (DifficultyLevel.HARD.value().equalsIgnoreCase(input)){
             return DifficultyLevel.HARD.value();
