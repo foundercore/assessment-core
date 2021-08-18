@@ -1026,6 +1026,7 @@ public class TestConfigServiceImpl implements TestConfigService {
                         /* enrichment as asked */
                         if (questionMap.containsKey(tq.getId())){
                             question.setName(questionMap.get(tq.getId()).getName());
+							question.setPassageContent(questionMap.get(tq.getId()).getPassageContent());
                             question.setType(questionMap.get(tq.getId()).getType());
                             question.setTags(questionMap.get(tq.getId()).getTags());
                         }
