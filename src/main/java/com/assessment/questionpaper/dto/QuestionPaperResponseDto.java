@@ -85,6 +85,7 @@ public class QuestionPaperResponseDto {
     public static class TestQuestionResponseDto {
         private String id;
         private String name;
+		private String passageContent;
         private String type;
         private List<String> tags;
         private double positiveMark = 0;
