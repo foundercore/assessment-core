@@ -31,8 +31,8 @@ public class Submission {
 
     private Map<String, Section> sections;
     private String evaluation;
-//    private double totalMarks;
-//    private double timeTakenInSec;
+	// private double totalMarks;
+	// private double timeTakenInSec;
 
     private Summary summary;
 

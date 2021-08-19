@@ -526,9 +526,11 @@ public class TestConfigServiceImpl implements TestConfigService {
         if (QuestionPaperStatus.DELETED.value().equalsIgnoreCase(questionPaper.getStatus())){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Question paper %s does not exist.", paperId));
         }
-        if (!QuestionPaperStatus.DRAFT.value().equalsIgnoreCase(questionPaper.getStatus())){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Can't update question paper %s. Status not draft.", paperId));
-        }
+		// if
+		// (!QuestionPaperStatus.DRAFT.value().equalsIgnoreCase(questionPaper.getStatus())){
+		// throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+		// String.format("Can't update question paper %s. Status not draft.", paperId));
+		// }
         if (questionPaper.getSections() == null || !questionPaper.getSections().containsKey(sectionId)){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Section with Id %s does not exist", sectionId));
         }
