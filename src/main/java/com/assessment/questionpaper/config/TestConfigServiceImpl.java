@@ -884,9 +884,11 @@ public class TestConfigServiceImpl implements TestConfigService {
 					readPercentileFile(controlParamsRequestDto.getPercentileFile(), questionPaper));
 		} else {
 			// update individual attributes
-			controlParams.setAllowCalculator(controlParams.isAllowCalculator());
-			controlParams.setDoNotShowReport(controlParams.isDoNotShowReport());
-			controlParams.setPercentile(controlParams.isPercentile());
+			controlParams.setAllowCalculator(controlParamsRequestDto.isAllowCalculator());
+			controlParams.setDoNotShowReport(controlParamsRequestDto.isDoNotShowReport());
+			controlParams.setPercentile(controlParamsRequestDto.isPercentile());
+			controlParams.setSectionalTest(controlParamsRequestDto.isSectionalTest());
+			controlParams.setShuffleQuestions(controlParamsRequestDto.isShuffleQuestions());
 		}
 		return controlParams;
 	}

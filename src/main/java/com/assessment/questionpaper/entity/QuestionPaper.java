@@ -167,6 +167,7 @@ public class QuestionPaper {
         private boolean freeTest;
         private boolean viewSolution;
         private boolean viewTestResult;
+		private boolean sectionalTest;
 
         private int maxAttempts;
         private int overall;
@@ -198,6 +199,7 @@ public class QuestionPaper {
             response.setFreeTest(this.freeTest);
             response.setViewSolution(this.viewSolution);
             response.setViewTestResult(this.viewTestResult);
+			response.setSectionalTest(this.sectionalTest);
 
             response.setMaxAttempts(this.maxAttempts);
             response.setOverall(this.overall);

@@ -59,6 +59,7 @@ public class QuestionPaperRequestDto {
 		private boolean percentile;
 		private boolean allowCalculator;
 		private boolean shuffleQuestions;
+		private boolean sectionalTest;
 		private MultipartFile percentileFile;
 	}
 }

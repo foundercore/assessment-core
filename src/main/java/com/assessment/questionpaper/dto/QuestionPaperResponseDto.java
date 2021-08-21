@@ -125,6 +125,7 @@ public class QuestionPaperResponseDto {
         private boolean freeTest;
         private boolean viewSolution;
         private boolean viewTestResult;
+		private boolean sectionalTest;
 
         private int maxAttempts;
         private int overall;
