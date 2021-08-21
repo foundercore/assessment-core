@@ -130,8 +130,9 @@ public class TestReportServiceImpl implements TestReportService {
 				record.put("marksReceived", submission.getSummary().getMetric().getMarksReceived());
 				record.put("totalMarks", submission.getSummary().getMetric().getTotalMarks());
 				if (percentileScore != null) {
+					Object percentile = percentileScore.get(submission.getSummary().getMetric().getMarksReceived());
 					record.put("percentile",
-							percentileScore.get(submission.getSummary().getMetric().getMarksReceived()));
+							percentile != null ? percentile : 0.0);
 				}
 				response.add(record);
 			}

@@ -963,16 +963,14 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
                 difficultySummary.getMetric().addTotal(marks, time, totalMarks);
                 topicSummary.getMetric().addTotal(marks, time, totalMarks);
             }
+			SectionSummary tempSectionSummary = summary.getSectionSummaryById(section.getSectionId());
+			Double marksReceived = tempSectionSummary.getMetric().getMarksReceived();
 			Map<Double, Double> sectionLevelPercentile = getPercentileForSection(testConfig, section.getSectionId());
-			if (sectionLevelPercentile != null) {
-				SectionSummary tempSectionSummary = summary.getSectionSummaryById(section.getSectionId());
-				Double marksReceived = tempSectionSummary.getMetric().getMarksReceived();
+			if (sectionLevelPercentile != null && sectionLevelPercentile.get(marksReceived) != null) {
 				tempSectionSummary.getMetric().setPercentileScore(sectionLevelPercentile.get(marksReceived));
 			}
 
         }
-        
-        
         return summary;
     }
 
