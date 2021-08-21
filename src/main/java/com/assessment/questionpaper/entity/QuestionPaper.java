@@ -87,6 +87,25 @@ public class QuestionPaper {
         return subsections;
     }
 
+	public Map<Double, Double> getPercentileForSection(String sectionId) {
+		if (this.getControlParam() != null && this.getControlParam().getPercentileScoreCard() != null
+				&& this.getControlParam().getPercentileScoreCard().getSectionLevelPercentile() != null
+				&& this.getControlParam().getPercentileScoreCard().getSectionLevelPercentile().get(sectionId) != null) {
+			return this.getControlParam().getPercentileScoreCard().getSectionLevelPercentile().get(sectionId);
+		}
+
+		return null;
+	}
+
+	public Map<Double, Double> getPercentileForTest() {
+		if (this.getControlParam() != null && this.getControlParam().getPercentileScoreCard() != null
+				&& this.getControlParam().getPercentileScoreCard().getTestLevelPercentile() != null) {
+			return this.getControlParam().getPercentileScoreCard().getTestLevelPercentile();
+		}
+
+		return null;
+	}
+
     @Data
     public static class PaperSection {
 

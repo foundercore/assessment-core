@@ -21,6 +21,7 @@ public class Metric {
     private double correctTimeInSec = 0;
     private double incorrectTimeInSec = 0;
 	private double skippedTimeInSec = 0;
+	private double percentileScore = 0;
 
     public void addTotal(double markAllocated, int timeElapsedInSec, double totalMarks){
         this.totalQuestions++;

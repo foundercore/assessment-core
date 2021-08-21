@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 
@@ -931,9 +932,9 @@ public class TestConfigServiceImpl implements TestConfigService {
 		percentileScoreCard.setTestId(questionPaper.getId().getQuestionPaperId());
 		percentileScoreCard.setTestName(questionPaper.getName());
 
-		List<String> sectionNames = new ArrayList<>();
+		Map<String, String> sectionNames = new HashMap<String, String>();
 		questionPaper.getSections().values().forEach(section -> {
-			sectionNames.add(section.getName());
+			sectionNames.put(section.getName(), section.getId());
 		});
 		while (decoder.hasNext()) {
 			rowCount++;
@@ -952,18 +953,21 @@ public class TestConfigServiceImpl implements TestConfigService {
 			/*
 			 * read section marks
 			 */
-			for (String section : sectionNames) {
+			for (Entry<String, String> sectionName : sectionNames.entrySet()) {
 				Double sectionMark = StringUtility
-						.parseStringToOptionalDouble(String.valueOf(record.get(section + " Marks")));
+						.parseStringToOptionalDouble(String.valueOf(record.get(sectionName.getKey() + " Marks")));
 				Double sectionPercentileMark = StringUtility
-						.parseStringToOptionalDouble(String.valueOf(record.get(section + " Percentile")));
+						.parseStringToOptionalDouble(String.valueOf(record.get(sectionName.getKey() + " Percentile")));
 				if (sectionMark != null) {
-					if(percentileScoreCard.getSectionLevelPercentile().get(section)!=null) {
-					percentileScoreCard.getSectionLevelPercentile().get(section).put(sectionMark,
+					if (percentileScoreCard.getSectionLevelPercentile().get(sectionName.getValue()) != null) {
+						percentileScoreCard.getSectionLevelPercentile().get(sectionName.getValue())
+								.put(sectionMark,
 							sectionPercentileMark);
 					}else {
-						percentileScoreCard.getSectionLevelPercentile().put(section, new HashMap<>());
-						percentileScoreCard.getSectionLevelPercentile().get(section).put(sectionMark,
+						percentileScoreCard.getSectionLevelPercentile().put(sectionName.getValue(),
+								new HashMap<>());
+						percentileScoreCard.getSectionLevelPercentile().get(sectionName.getValue())
+								.put(sectionMark,
 								sectionPercentileMark);
 					}
 				}

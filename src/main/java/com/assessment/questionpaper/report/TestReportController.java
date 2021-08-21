@@ -1,4 +1,4 @@
-package com.assessment.questionpaper;
+package com.assessment.questionpaper.report;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
