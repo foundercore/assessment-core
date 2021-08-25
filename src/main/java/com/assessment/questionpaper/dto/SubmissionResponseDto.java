@@ -66,6 +66,7 @@ public class SubmissionResponseDto {
         private int timeElapsedInSec;
         private boolean markForReview;
         private String explanation;
+		private String videoExplanationUrl;
 		private String passage;
 		private String subject;
 		private String topic;

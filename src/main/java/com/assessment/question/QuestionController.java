@@ -56,64 +56,6 @@ public class QuestionController {
     @Autowired
     QuestionService questionService;
 
-//    @Transactional
-//    @PostMapping("/passage")
-//    @PreAuthorize("hasAnyRole('ROLE_TENANT_ADMIN', 'ROLE_USER_ADMIN', 'ROLE_STAFF')")
-//    public long createPassage(@RequestBody Passage passage){
-//        return questionService.createPassage(passage);
-//    }
-//
-//    @GetMapping("/passage/{passage-id}")
-//    @PreAuthorize("hasAnyRole('ROLE_TENANT_ADMIN', 'ROLE_USER_ADMIN', 'ROLE_STAFF')")
-//    public Passage getPassage(@PathVariable("passage-id") long passageId){
-//        PassageId id = new PassageId();
-//        id.setPassageId(passageId);
-//        id.setTenantId(AuthUtils.getCurrentTenantId());
-//
-//        return passageRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Passage with id %s not found", passageId)));
-//    }
-//
-//    @Transactional
-//    @PostMapping("/passage/{passage-id}/update")
-//    @PreAuthorize("hasAnyRole('ROLE_TENANT_ADMIN', 'ROLE_USER_ADMIN', 'ROLE_STAFF')")
-//    public void updatePassage(@PathVariable("passage-id") long passageId, @RequestBody Passage passage){
-//        questionService.updatePassage(passageId, passage);
-//    }
-//
-//    @Transactional
-//    @PostMapping("/passage/{passage-id}/remove")
-//    @PreAuthorize("hasAnyRole('ROLE_TENANT_ADMIN', 'ROLE_USER_ADMIN', 'ROLE_STAFF')")
-//    public void deletePassage(@PathVariable("passage-id") long passageId){
-//        PassageId id = new PassageId();
-//        id.setPassageId(passageId);
-//        id.setTenantId(AuthUtils.getCurrentTenantId());
-//
-//        passageRepository.deleteById(id);
-//    }
-//
-//    @GetMapping("/passages")
-//    @PreAuthorize("hasAnyRole('ROLE_TENANT_ADMIN', 'ROLE_USER_ADMIN', 'ROLE_STAFF')")
-//    public List<Passage> getAllPassages(){
-//        Query query = new Query();
-//        query.addCriteria(Criteria.where("_id.tenantId").is(AuthUtils.getCurrentTenantId()));
-//        return mongoTemplate.find(query, Passage.class);
-//    }
-//
-//    @Transactional
-//    @PostMapping("/passage/{passage-id}/link")
-//    @PreAuthorize("hasAnyRole('ROLE_TENANT_ADMIN', 'ROLE_USER_ADMIN', 'ROLE_STAFF')")
-//    public void linkQuestionsToPassage(@PathVariable("passage-id") long passageId, @RequestBody List<Long> questionIds){
-//
-//        questionService.linkQuestionsToPassage(passageId, questionIds);
-//    }
-//
-//    @Transactional
-//    @PostMapping("/passage/{passage-id}/unlink")
-//    @PreAuthorize("hasAnyRole('ROLE_TENANT_ADMIN', 'ROLE_USER_ADMIN', 'ROLE_STAFF')")
-//    public void unlinkQuestionsToPassage(@PathVariable("passage-id") long passageId, @RequestBody List<Long> questionIds){
-//
-//        questionService.unlinkQuestionsToPassage(passageId, questionIds);
-//    }
 
     @Transactional
     @PostMapping
