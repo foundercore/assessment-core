@@ -1,12 +1,21 @@
 package com.assessment.question;
 
-import lombok.Data;
-import org.springframework.data.annotation.*;
-import org.springframework.data.mongodb.core.mapping.Document;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.util.*;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+import lombok.Data;
 
 @Data
 @Document(collection = Question.COLLECTION_NAME)
@@ -41,6 +50,7 @@ public class Question {
     private List<String> tags;
     private String reference;
     private String explanation;
+	private String videoExplanationUrl;
 
     private QuestionAnswer answer;
 
