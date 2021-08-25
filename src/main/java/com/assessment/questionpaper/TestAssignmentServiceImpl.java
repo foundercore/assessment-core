@@ -44,7 +44,9 @@ import com.assessment.questionpaper.entity.AssignmentId;
 import com.assessment.questionpaper.entity.Metric;
 import com.assessment.questionpaper.entity.QuestionPaper;
 import com.assessment.questionpaper.entity.Submission;
+import com.assessment.questionpaper.entity.Submission.SectionSummary;
 import com.assessment.questionpaper.entity.SubmissionId;
+import com.assessment.questionpaper.report.TestSubmissionRepository;
 import com.assessment.studentbatch.StudentBatch;
 import com.assessment.studentbatch.StudentBatchService;
 
@@ -796,7 +798,7 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
             answers.forEach(item -> submission.getSections().get(sectionId).addAnswer(item));
         }
         /* handle marks calculation */
-        Submission.Summary summary = generateSubmissionSummary(submission);
+		Submission.Summary summary = generateSubmissionSummary(submission, testConfig);
         submission.setSummary(summary);
         /* mark submission completed & save */
         submission.setEvaluation(EvaluationState.COMPLETED.value());
@@ -885,7 +887,7 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
         }
     }
 
-    private Submission.Summary generateSubmissionSummary(Submission submission){
+	private Submission.Summary generateSubmissionSummary(Submission submission,QuestionPaperResponseDto testConfig){
         Submission.Summary summary = new Submission.Summary();
 
         Submission.SectionSummary sectionSummary;
@@ -961,10 +963,36 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
                 difficultySummary.getMetric().addTotal(marks, time, totalMarks);
                 topicSummary.getMetric().addTotal(marks, time, totalMarks);
             }
+			SectionSummary tempSectionSummary = summary.getSectionSummaryById(section.getSectionId());
+			Double marksReceived = tempSectionSummary.getMetric().getMarksReceived();
+			Map<Double, Double> sectionLevelPercentile = getPercentileForSection(testConfig, section.getSectionId());
+			if (sectionLevelPercentile != null && sectionLevelPercentile.get(marksReceived) != null) {
+				tempSectionSummary.getMetric().setPercentileScore(sectionLevelPercentile.get(marksReceived));
+			}
+
         }
         return summary;
     }
 
+	public Map<Double, Double> getPercentileForSection(QuestionPaperResponseDto testConfig, String sectionId) {
+		if (testConfig.getControlParam() != null && testConfig.getControlParam().getPercentileScoreCard() != null
+				&& testConfig.getControlParam().getPercentileScoreCard().getSectionLevelPercentile() != null
+				&& testConfig.getControlParam().getPercentileScoreCard().getSectionLevelPercentile()
+						.get(sectionId) != null) {
+			return testConfig.getControlParam().getPercentileScoreCard().getSectionLevelPercentile().get(sectionId);
+		}
+
+		return null;
+	}
+
+	public Map<Double, Double> getPercentileForTest(QuestionPaperResponseDto testConfig) {
+		if (testConfig.getControlParam() != null && testConfig.getControlParam().getPercentileScoreCard() != null
+				&& testConfig.getControlParam().getPercentileScoreCard().getTestLevelPercentile() != null) {
+			return testConfig.getControlParam().getPercentileScoreCard().getTestLevelPercentile();
+		}
+
+		return null;
+	}
     private String getDifficultyLevel(String input){
 		if (DifficultyLevel.VERY_HARD.value().equalsIgnoreCase(input)) {
 			return DifficultyLevel.VERY_HARD.value();

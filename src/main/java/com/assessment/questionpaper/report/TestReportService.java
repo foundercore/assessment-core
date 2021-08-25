@@ -1,9 +1,13 @@
-package com.assessment.questionpaper;
-
-import org.springframework.validation.annotation.Validated;
+package com.assessment.questionpaper.report;
 
 import java.util.List;
 import java.util.Map;
+
+import javax.validation.constraints.NotBlank;
+
+import org.springframework.validation.annotation.Validated;
+
+import com.assessment.questionpaper.report.dto.StudentTestReportResponseDto;
 
 @Validated
 public interface TestReportService {
@@ -13,4 +17,6 @@ public interface TestReportService {
     List<Map<String, Object>> getStudentAssignmentRanking(String assignmentId);
 
     List<Map<String, Object>> getStudentAssignedToTest(String assignmentId);
+
+	List<StudentTestReportResponseDto> getStudentTestReport(@NotBlank String testId);
 }

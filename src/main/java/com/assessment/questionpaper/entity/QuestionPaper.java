@@ -87,6 +87,27 @@ public class QuestionPaper {
         return subsections;
     }
 
+	public Map<Double, Double> getPercentileForSection(String sectionId) {
+		if (this.getControlParam() != null && this.getControlParam().isPercentile()
+				&& this.getControlParam().getPercentileScoreCard() != null
+				&& this.getControlParam().getPercentileScoreCard().getSectionLevelPercentile() != null
+				&& this.getControlParam().getPercentileScoreCard().getSectionLevelPercentile().get(sectionId) != null) {
+			return this.getControlParam().getPercentileScoreCard().getSectionLevelPercentile().get(sectionId);
+		}
+
+		return null;
+	}
+
+	public Map<Double, Double> getPercentileForTest() {
+		if (this.getControlParam() != null && this.getControlParam().getPercentileScoreCard() != null
+				&& this.getControlParam().isPercentile()
+				&& this.getControlParam().getPercentileScoreCard().getTestLevelPercentile() != null) {
+			return this.getControlParam().getPercentileScoreCard().getTestLevelPercentile();
+		}
+
+		return null;
+	}
+
     @Data
     public static class PaperSection {
 
@@ -148,6 +169,7 @@ public class QuestionPaper {
         private boolean freeTest;
         private boolean viewSolution;
         private boolean viewTestResult;
+		private boolean sectionalTest;
 
         private int maxAttempts;
         private int overall;
@@ -179,6 +201,7 @@ public class QuestionPaper {
             response.setFreeTest(this.freeTest);
             response.setViewSolution(this.viewSolution);
             response.setViewTestResult(this.viewTestResult);
+			response.setSectionalTest(this.sectionalTest);
 
             response.setMaxAttempts(this.maxAttempts);
             response.setOverall(this.overall);

@@ -1,4 +1,4 @@
-package com.assessment.questionpaper;
+package com.assessment.questionpaper.report;
 
 import org.springframework.data.repository.CrudRepository;
 
