@@ -456,6 +456,7 @@ public class QuestionServiceImpl implements QuestionService {
 		currentQuestion.setTags(question.getTags());
 		currentQuestion.setSubject(question.getSubject());
 		currentQuestion.setDifficultyLevel(question.getDifficultyLevel());
+		currentQuestion.setVideoExplanationUrl(question.getVideoExplanationUrl());
 
         questionRepository.save(currentQuestion);
     }
