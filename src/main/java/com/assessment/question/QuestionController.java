@@ -187,4 +187,17 @@ public class QuestionController {
     public QuestionPaginatedResponse searchQuestions(@RequestBody SearchQuestion filter){
         return questionService.searchQuestions(filter);
     }
+
+	@Transactional
+	@PostMapping("/upload-video-url")
+	@PreAuthorize("hasAnyRole('ROLE_TENANT_ADMIN', 'ROLE_USER_ADMIN', 'ROLE_STAFF')")
+	public List<String> updateQuestionVideoUrl() {
+		try {
+			return questionService.updateQuestionVideoUrl();
+		} catch (IOException | CsvValidationException e) {
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+		}
+	}
 }
