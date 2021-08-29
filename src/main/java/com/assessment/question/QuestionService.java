@@ -63,4 +63,6 @@ public interface QuestionService {
     List<String> getQuestionSubTopics();
 
     void updateQuestionTags(String questionId, List<String> tags);
+
+	List<String> updateQuestionVideoUrl() throws IOException, CsvValidationException;
 }

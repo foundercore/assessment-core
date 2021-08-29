@@ -996,4 +996,44 @@ public class QuestionServiceImpl implements QuestionService {
 		return "EASY";
 	}
 
+	@Override
+	public List<String> updateQuestionVideoUrl() throws IOException, CsvValidationException {
+		List<String> updates = new ArrayList<>();
+		try {
+			Criteria explanationWithVideo = Criteria.where("explanation").regex(Pattern.quote("vimeo"), "idx");
+			Query query = new Query(explanationWithVideo);
+			List<Question> questionsToUpdateVideoExplanation = mongoTemplate.find(query, Question.class);
+			// int parallel = 20;
+			// ThreadPoolExecutor executor = new ThreadPoolExecutor(parallel, parallel, 10,
+			// TimeUnit.DAYS,
+			// new ArrayBlockingQueue<>(10_000));
+			// questionsToUpdateVideoExplanation.forEach(question -> executor.execute(() ->
+			// {
+			// String videoUrl = question.getExplanation().substring(
+			// question.getExplanation().indexOf("https://vimeo"),
+			// question.getExplanation().length());
+			// // actual update happens here.
+			// question.setVideoExplanationUrl(videoUrl);
+			// updates.add("Question : " + question.getId().getQuestionId() + " updated with
+			// URL : " + videoUrl);
+			// // questionRepository.save(question);
+			// }));
+			for (Question question : questionsToUpdateVideoExplanation) {
+				String videoUrl = question.getExplanation().substring(
+						question.getExplanation().indexOf("https://vimeo"), question.getExplanation().length());
+				// actual update happens here.
+				question.setVideoExplanationUrl(videoUrl);
+				updates.add("Question : " + question.getId().getQuestionId() + " updated with URL : " + videoUrl);
+
+			}
+			/* save questions */
+			questionRepository.saveAll(questionsToUpdateVideoExplanation);
+		} finally {
+
+		}
+
+		return updates;
+
+	}
+
 }
