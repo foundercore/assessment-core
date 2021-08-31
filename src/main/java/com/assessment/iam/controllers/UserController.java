@@ -41,7 +41,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.assessment.common.StringUtility;
 import com.assessment.common.validations.ValidDisplayName;
 import com.assessment.iam.commons.AuthUtils;
-import com.assessment.iam.dtos.AppRole;
+import com.assessment.iam.dtos.UserRole;
 import com.assessment.iam.dtos.UserCreateRequestDto;
 import com.assessment.iam.dtos.UserPaginatedResponse;
 import com.assessment.iam.dtos.UserResponseDto;
@@ -97,7 +97,7 @@ public class UserController {
         if (userCreateRequestDto.getRoles() != null && !userCreateRequestDto.getRoles().isEmpty()){
             user.setRoles(userCreateRequestDto.getRoles());
         }else {
-            user.setRoles(new HashSet<>(Collections.singletonList(AppRole.ROLE_STUDENT.value())));
+            user.setRoles(new HashSet<>(Collections.singletonList(UserRole.ROLE_STUDENT.value())));
         }
         try {
             user.setUserName(userService.generateNewUsername());
@@ -316,7 +316,7 @@ public class UserController {
 
     @GetMapping("/app-configured-roles")
     public List<String> appConfiguredRoles() {
-        return AppRole.getRoles(false);
+        return UserRole.getRoles(false);
     }
 
 

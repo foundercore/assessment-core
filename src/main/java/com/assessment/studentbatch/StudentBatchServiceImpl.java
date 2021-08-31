@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.assessment.iam.commons.AuthUtils;
-import com.assessment.iam.dtos.AppRole;
+import com.assessment.iam.dtos.UserRole;
 import com.assessment.iam.entities.User;
 import com.assessment.iam.services.UserService;
 
@@ -42,7 +42,7 @@ public class StudentBatchServiceImpl implements StudentBatchService {
 
         for (String email: emails){
             User user = userService.getUserByEmail(email);
-            if (!user.getRoles().contains(AppRole.ROLE_STUDENT.value())){
+            if (!user.getRoles().contains(UserRole.ROLE_STUDENT.value())){
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Not a student. Email - "+ email);
             }
 
@@ -72,7 +72,7 @@ public class StudentBatchServiceImpl implements StudentBatchService {
 
         for (String email: emails){
             User user = userService.getUserByEmail(email);
-            if (!user.getRoles().contains(AppRole.ROLE_STUDENT.value())){
+            if (!user.getRoles().contains(UserRole.ROLE_STUDENT.value())){
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Not a student. Email - "+ email);
             }
 

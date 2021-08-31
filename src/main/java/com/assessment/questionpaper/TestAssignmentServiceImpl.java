@@ -679,11 +679,12 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
         /* get assignment */
         Assignment assignment = getAssignmentEntity(assignmentId);
 
-        /* get associated student */
-        List<String> students = getAssociatedStudents(assignment);
-        if (!students.contains(studentId)){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Assignment not assigned to student");
-        }
+		// /* get associated student */
+		// List<String> students = getAssociatedStudents(assignment);
+		// if (!students.contains(studentId)){
+		// throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Assignment not
+		// assigned to student");
+		// }
 
         /* get student's submissions */
         Submission submission = getSubmissionEntity(assignmentId, studentId, true);

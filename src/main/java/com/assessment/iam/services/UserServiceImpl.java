@@ -45,7 +45,7 @@ import com.assessment.common.CsvFileDecoder;
 import com.assessment.common.FileUtility;
 import com.assessment.common.StringUtility;
 import com.assessment.iam.commons.AuthUtils;
-import com.assessment.iam.dtos.AppRole;
+import com.assessment.iam.dtos.UserRole;
 import com.assessment.iam.dtos.UserPaginatedResponse;
 import com.assessment.iam.dtos.UserResponseDto;
 import com.assessment.iam.dtos.UserSearchRequestDto;
@@ -110,7 +110,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 //                    String.format("User Password %s is invalid as per configured policy!", user.getPassword()));
 //        }
 
-        if (!AppRole.getRoles(false).containsAll(user.getRoles())) {
+        if (!UserRole.getRoles(false).containsAll(user.getRoles())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid role found!");
         }
 
@@ -118,7 +118,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
         User loggedInUser = userRepository.findById(loggedInUserName).orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN,
                 String.format("User with user name %s not found!", loggedInUserName)));
 
-        if (user.getRoles().contains(AppRole.ROLE_TENANT_ADMIN.value()) && !loggedInUser.getRoles().contains(AppRole.ROLE_TENANT_ADMIN.value())) {
+        if (user.getRoles().contains(UserRole.ROLE_TENANT_ADMIN.value()) && !loggedInUser.getRoles().contains(UserRole.ROLE_TENANT_ADMIN.value())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient privileges to assign Role ROLE_TENANT_ADMIN!");
         }
 
@@ -145,7 +145,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
     @PreAuthorize("hasAnyRole('ROLE_TENANT_ADMIN', 'ROLE_USER_ADMIN')")
     public void updateUser(String userName, UserUpdateRequestDto dto) {
         validateTenantId(userName);
-        if (!AppRole.getRoles(false).containsAll(dto.getRoles())) {
+        if (!UserRole.getRoles(false).containsAll(dto.getRoles())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid role found!");
         }
 
@@ -160,8 +160,8 @@ public class UserServiceImpl implements UserDetailsService, UserService {
         //check if role ROLE_TENANT_ADMIN is assigned or removed
         // or if user already has ROLE_TENANT_ADMIN,
         // than logged in user should have role ROLE_TENANT_ADMIN.
-        if ((dto.getRoles().contains(AppRole.ROLE_TENANT_ADMIN.value()) || currentUser.getRoles().contains(AppRole.ROLE_TENANT_ADMIN.value()))
-                && !loggedInUser.getRoles().contains(AppRole.ROLE_TENANT_ADMIN.value())) {
+        if ((dto.getRoles().contains(UserRole.ROLE_TENANT_ADMIN.value()) || currentUser.getRoles().contains(UserRole.ROLE_TENANT_ADMIN.value()))
+                && !loggedInUser.getRoles().contains(UserRole.ROLE_TENANT_ADMIN.value())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient privileges to assign Role ROLE_TENANT_ADMIN!");
         }
 
@@ -221,7 +221,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
         User loggedInUser = userRepository.findById(loggedInUserName).orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN,
                 String.format("User with user name %s not found!", loggedInUserName)));
 
-        if (user.getRoles().contains(AppRole.ROLE_TENANT_ADMIN.value()) && !loggedInUser.getRoles().contains(AppRole.ROLE_TENANT_ADMIN.value())) {
+        if (user.getRoles().contains(UserRole.ROLE_TENANT_ADMIN.value()) && !loggedInUser.getRoles().contains(UserRole.ROLE_TENANT_ADMIN.value())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient privileges, Role ROLE_TENANT_ADMIN required!");
         }
 
@@ -244,7 +244,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
         User loggedInUser = userRepository.findById(loggedInUserName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN,
                         String.format("User with user name %s not found!", loggedInUserName)));
-        if (user.getRoles().contains(AppRole.ROLE_TENANT_ADMIN.value()) && !loggedInUser.getRoles().contains(AppRole.ROLE_TENANT_ADMIN.value())) {
+        if (user.getRoles().contains(UserRole.ROLE_TENANT_ADMIN.value()) && !loggedInUser.getRoles().contains(UserRole.ROLE_TENANT_ADMIN.value())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient privileges, Role ROLE_TENANT_ADMIN required!");
         }
 
@@ -274,7 +274,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
         User loggedInUser = userRepository.findById(loggedInUserName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN,
                         String.format("User with user name %s not found!", loggedInUserName)));
-        if (user.getRoles().contains(AppRole.ROLE_TENANT_ADMIN.value()) && !loggedInUser.getRoles().contains(AppRole.ROLE_TENANT_ADMIN.value())) {
+        if (user.getRoles().contains(UserRole.ROLE_TENANT_ADMIN.value()) && !loggedInUser.getRoles().contains(UserRole.ROLE_TENANT_ADMIN.value())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient privileges, Role ROLE_TENANT_ADMIN required!");
         }
 
@@ -296,7 +296,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
     public void addRole(String userName, String role) {
         validateTenantId(userName);
 
-        if (!AppRole.getRoles(false).contains(role)) {
+        if (!UserRole.getRoles(false).contains(role)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid role!");
         }
 
@@ -307,8 +307,8 @@ public class UserServiceImpl implements UserDetailsService, UserService {
         User loggedInUser = userRepository.findById(loggedInUserName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN,
                         String.format("User with user name %s not found!", loggedInUserName)));
-        if ((AppRole.ROLE_TENANT_ADMIN.value().equals(role) || user.getRoles().contains(AppRole.ROLE_TENANT_ADMIN.value()))
-                && !loggedInUser.getRoles().contains(AppRole.ROLE_TENANT_ADMIN.value())) {
+        if ((UserRole.ROLE_TENANT_ADMIN.value().equals(role) || user.getRoles().contains(UserRole.ROLE_TENANT_ADMIN.value()))
+                && !loggedInUser.getRoles().contains(UserRole.ROLE_TENANT_ADMIN.value())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient privileges, Role ROLE_TENANT_ADMIN required!");
         }
 
@@ -327,7 +327,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
     public void removeRole(String userName, String role) {
         validateTenantId(userName);
 
-        if (!AppRole.getRoles(false).contains(role)) {
+        if (!UserRole.getRoles(false).contains(role)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid role!");
         }
 
@@ -338,8 +338,8 @@ public class UserServiceImpl implements UserDetailsService, UserService {
         User loggedInUser = userRepository.findById(loggedInUserName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN,
                         String.format("User with user name %s not found!", loggedInUserName)));
-        if ((AppRole.ROLE_TENANT_ADMIN.value().equals(role) || user.getRoles().contains(AppRole.ROLE_TENANT_ADMIN.value()))
-                && !loggedInUser.getRoles().contains(AppRole.ROLE_TENANT_ADMIN.value())) {
+        if ((UserRole.ROLE_TENANT_ADMIN.value().equals(role) || user.getRoles().contains(UserRole.ROLE_TENANT_ADMIN.value()))
+                && !loggedInUser.getRoles().contains(UserRole.ROLE_TENANT_ADMIN.value())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient privileges, Role ROLE_TENANT_ADMIN required!");
         }
 
@@ -398,7 +398,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
                     user.setEnabled(true);
 
                     /* roles */
-                    String [] rid = String.valueOf(record.getOrDefault("roles", AppRole.ROLE_STUDENT.value())).toUpperCase().split("\\|");
+                    String [] rid = String.valueOf(record.getOrDefault("roles", UserRole.ROLE_STUDENT.value())).toUpperCase().split("\\|");
                     Set<String> roles = new HashSet<>(Arrays.asList(rid));
                     user.setRoles(roles);
 
@@ -445,7 +445,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
                             String.format("User with user email %s already exists!", user.getEmail()));
                 }
 
-                if (!Arrays.asList(AppRole.ROLE_STAFF.value(), AppRole.ROLE_STUDENT.value()).containsAll(user.getRoles())) {
+                if (!Arrays.asList(UserRole.ROLE_STAFF.value(), UserRole.ROLE_STUDENT.value()).containsAll(user.getRoles())) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid role found. Allowed roles are ROLE_STAFF & ROLE_STUDENT.");
                 }
 
@@ -453,7 +453,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
                 User loggedInUser = userRepository.findById(loggedInUserName).orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN,
                         String.format("User with user name %s not found!", loggedInUserName)));
 
-                if (user.getRoles().contains(AppRole.ROLE_TENANT_ADMIN.value()) && !loggedInUser.getRoles().contains(AppRole.ROLE_TENANT_ADMIN.value())) {
+                if (user.getRoles().contains(UserRole.ROLE_TENANT_ADMIN.value()) && !loggedInUser.getRoles().contains(UserRole.ROLE_TENANT_ADMIN.value())) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient privileges to assign Role ROLE_TENANT_ADMIN!");
                 }
 
@@ -490,8 +490,8 @@ public class UserServiceImpl implements UserDetailsService, UserService {
     }
 
     private void validateUserRoleConflict(Set<String> roles) {
-        if (roles.size() > 1 && roles.contains(AppRole.ROLE_STUDENT.value())){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format( "Role conflict detected. %s not allowed along with other roles.", AppRole.ROLE_STUDENT.value()));
+        if (roles.size() > 1 && roles.contains(UserRole.ROLE_STUDENT.value())){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format( "Role conflict detected. %s not allowed along with other roles.", UserRole.ROLE_STUDENT.value()));
         }
     }
 
