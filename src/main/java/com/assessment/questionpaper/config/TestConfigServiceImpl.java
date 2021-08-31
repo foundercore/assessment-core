@@ -34,7 +34,7 @@ import com.assessment.common.StringUtility;
 import com.assessment.common.TimeUtility;
 import com.assessment.common.XLReader;
 import com.assessment.iam.commons.AuthUtils;
-import com.assessment.iam.dtos.AppRole;
+import com.assessment.iam.dtos.UserRole;
 import com.assessment.question.Question;
 import com.assessment.question.QuestionService;
 import com.assessment.questionpaper.dto.QuestionPaperPaginatedResponse;
@@ -671,8 +671,8 @@ public class TestConfigServiceImpl implements TestConfigService {
     }
 
     private boolean isAdminUser() {
-        return AuthUtils.getCurrentUserRoles().contains(AppRole.ROLE_TENANT_ADMIN.value())
-                || AuthUtils.getCurrentUserRoles().contains(AppRole.ROLE_USER_ADMIN.value());
+        return AuthUtils.getCurrentUserRoles().contains(UserRole.ROLE_TENANT_ADMIN.value())
+                || AuthUtils.getCurrentUserRoles().contains(UserRole.ROLE_USER_ADMIN.value());
     }
 
     @Override

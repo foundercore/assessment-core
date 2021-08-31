@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.assessment.common.StringUtility;
 import com.assessment.iam.commons.AuthUtils;
+import com.assessment.iam.dtos.UserRole;
 import com.assessment.iam.entities.User;
 import com.assessment.iam.services.UserService;
 import com.assessment.question.QuestionService;
@@ -70,10 +71,12 @@ public class TestReportServiceImpl implements TestReportService {
 		for (Submission submission : submissions) {
 			Map<String, Object> record = new HashMap<>();
 			User user = userService.getUser(submission.getStudentId()).orElse(null);
-			if (user != null) {
-				record.put("name", user.getDisplayName());
-				record.put("email", user.getEmail());
+			// report is just for students.
+			if (user == null || !user.getRoles().contains(UserRole.ROLE_STUDENT.value())) {
+				continue;
 			}
+			record.put("name", user.getDisplayName());
+			record.put("email", user.getEmail());
 			record.put("username", submission.getStudentId());
 			record.put("marksReceived", submission.getSummary().getMetric().getMarksReceived());
 			record.put("totalMarks", submission.getSummary().getMetric().getTotalMarks());
@@ -128,10 +131,13 @@ public class TestReportServiceImpl implements TestReportService {
 					&& submission.getEvaluation().equals(EvaluationState.COMPLETED.value())) {
 				Map<String, Object> record = new HashMap<>();
 				User user = userService.getUser(submission.getStudentId()).orElse(null);
-				if (user != null) {
-					record.put("name", user.getDisplayName());
-					record.put("email", user.getEmail());
+				// report is just for students.
+				if (user == null || !user.getRoles().contains(UserRole.ROLE_STUDENT.value())) {
+					continue;
 				}
+				record.put("name", user.getDisplayName());
+				record.put("email", user.getEmail());
+
 				record.put("username", submission.getStudentId());
 				record.put("marksReceived", submission.getSummary().getMetric().getMarksReceived());
 				record.put("totalMarks", submission.getSummary().getMetric().getTotalMarks());
@@ -190,10 +196,13 @@ public class TestReportServiceImpl implements TestReportService {
 						&& submission.getEvaluation().equals(EvaluationState.COMPLETED.value())) {
 					StudentTestReportResponseDto record = new StudentTestReportResponseDto();
 					User user = userService.getUser(submission.getStudentId()).orElse(null);
-					if (user != null) {
-						record.setStudentName(user.getDisplayName());
-						record.setStudentEmail(user.getEmail());
+					// report is just for students.
+					if (user == null || !user.getRoles().contains(UserRole.ROLE_STUDENT.value())) {
+						continue;
 					}
+
+					record.setStudentName(user.getDisplayName());
+					record.setStudentEmail(user.getEmail());
 					if (percentileScore != null) {
 						Double percentile = percentileScore.get(submission.getSummary().getMetric().getMarksReceived());
 						record.setPercentile(percentile != null ? percentile : 0.0);

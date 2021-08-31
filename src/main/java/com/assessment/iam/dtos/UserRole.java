@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public enum AppRole {
+public enum UserRole {
     ROLE_SUPER_ADMIN("ROLE_SUPER_ADMIN"),
     ROLE_TENANT_ADMIN("ROLE_TENANT_ADMIN"),
     ROLE_USER_ADMIN("ROLE_USER_ADMIN"),
@@ -15,7 +15,7 @@ public enum AppRole {
 
     private final String value;
 
-    private AppRole(String value) {
+    private UserRole(String value) {
         this.value = value;
     }
 
@@ -27,14 +27,14 @@ public enum AppRole {
         return this.value;
     }
 
-    public static AppRole valueOf(AppRole role) {
+    public static UserRole valueOf(UserRole role) {
         return valueOf(role.value);
     }
 
     @NotNull
-    public static AppRole resolve(String role) {
-        AppRole[] var1 = values();
-        for (AppRole status : var1) {
+    public static UserRole resolve(String role) {
+        UserRole[] var1 = values();
+        for (UserRole status : var1) {
             if (Objects.equals(status.value, role)) {
                 return status;
             }
@@ -45,8 +45,8 @@ public enum AppRole {
 
     public static List<String> getRoles(){
         List<String> roles = new ArrayList<>();
-        AppRole[] var1 = values();
-        for (AppRole role : var1) {
+        UserRole[] var1 = values();
+        for (UserRole role : var1) {
             roles.add(role.value);
         }
         return roles;
@@ -54,9 +54,9 @@ public enum AppRole {
 
     public static List<String> getRoles(boolean tenantEnabled){
         List<String> roles = new ArrayList<>();
-        AppRole[] var1 = values();
-        for (AppRole role : var1) {
-            if (!tenantEnabled && !AppRole.ROLE_SUPER_ADMIN.value.equalsIgnoreCase(role.value) && !AppRole.ROLE_TENANT_ADMIN.value.equalsIgnoreCase(role.value)){
+        UserRole[] var1 = values();
+        for (UserRole role : var1) {
+            if (!tenantEnabled && !UserRole.ROLE_SUPER_ADMIN.value.equalsIgnoreCase(role.value) && !UserRole.ROLE_TENANT_ADMIN.value.equalsIgnoreCase(role.value)){
                 roles.add(role.value);
             }
         }
