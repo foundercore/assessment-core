@@ -2,7 +2,10 @@ package com.assessment.questionpaper.config;
 
 import java.util.List;
 
+import javax.validation.constraints.NotBlank;
+
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.assessment.question.Question;
 import com.assessment.questionpaper.dto.QuestionPaperPaginatedResponse;
@@ -62,4 +65,6 @@ public interface TestConfigService {
     List<String> getQuestionPaperSubjects();
 
 	void updateTestControlParams(String paperId, TestControlParamsRequestDto controlParams);
+
+	void updateTestInstituteAnalysisMetadata(@NotBlank String paperId, MultipartFile file);
 }

@@ -148,68 +148,28 @@ public class QuestionPaper {
 
     @Data
     public static class TestControlParams {
-        private boolean hideScoreCard;
-        private boolean hideTopicWiseAnalysis;
-        private boolean doNotShowReport;
-        private boolean percentile;
-        private boolean hideAllCharts;
-        private boolean hideAreaWiseAnalysis;
-        private boolean reviewTestReport;
-        private boolean hideSolutionAndQuestionSummary;
-        private boolean sectionalBreakup;
-        private boolean hideDifficultyLevelAnalysis;
-        private boolean hideAnalysis;
-        private boolean hideRank;
-        private boolean sectionWiseAnalysis;
-        private boolean questionWiseAnalysis;
-        private boolean cutoff;
-        private boolean allowCalculator;
-        private boolean shuffleQuestions;
-        private boolean allowSectionSelection;
-        private boolean freeTest;
-        private boolean viewSolution;
         private boolean viewTestResult;
 		private boolean sectionalTest;
+		private boolean allowInstituteAnalysisMetadata;
+		private boolean percentile;
+		private boolean allowCalculator;
+		private boolean doNotShowReport;
+		private boolean shuffleQuestions;
 
-        private int maxAttempts;
-        private int overall;
-        private int reasoning;
-        private int comprehension;
-        private int aptitude;
 		private PercentileScoreCard percentileScoreCard = new PercentileScoreCard();
+		private InstituteAnalysisMetadata instituteAnalysisMetadata = new InstituteAnalysisMetadata();
 
         public QuestionPaperResponseDto.TestControlParamsResponseDto toResponseDto(){
             QuestionPaperResponseDto.TestControlParamsResponseDto response = new QuestionPaperResponseDto.TestControlParamsResponseDto();
-            response.setHideScoreCard(this.hideScoreCard);
-            response.setHideTopicWiseAnalysis(this.hideTopicWiseAnalysis);
+
             response.setDoNotShowReport(this.doNotShowReport);
             response.setPercentile(this.percentile);
-            response.setHideAllCharts(this.hideAllCharts);
-            response.setHideAreaWiseAnalysis(this.hideAreaWiseAnalysis);
-            response.setReviewTestReport(this.reviewTestReport);
-            response.setHideSolutionAndQuestionSummary(this.hideSolutionAndQuestionSummary);
-            response.setSectionalBreakup(this.sectionalBreakup);
-            response.setHideDifficultyLevelAnalysis(this.hideDifficultyLevelAnalysis);
-            response.setHideAnalysis(this.hideAnalysis);
-            response.setHideRank(this.hideRank);
-            response.setSectionWiseAnalysis(this.sectionWiseAnalysis);
-            response.setQuestionWiseAnalysis(this.questionWiseAnalysis);
-            response.setCutoff(this.cutoff);
             response.setAllowCalculator(this.allowCalculator);
             response.setShuffleQuestions(this.shuffleQuestions);
-            response.setAllowSectionSelection(this.allowSectionSelection);
-            response.setFreeTest(this.freeTest);
-            response.setViewSolution(this.viewSolution);
             response.setViewTestResult(this.viewTestResult);
 			response.setSectionalTest(this.sectionalTest);
-
-            response.setMaxAttempts(this.maxAttempts);
-            response.setOverall(this.overall);
-            response.setReasoning(this.reasoning);
-            response.setComprehension(this.comprehension);
-            response.setAptitude(this.aptitude);
-
 			response.setPercentileScoreCard(this.percentileScoreCard);
+			response.setInstituteAnalysisMetadata(this.instituteAnalysisMetadata);
             return response;
         }
     }
