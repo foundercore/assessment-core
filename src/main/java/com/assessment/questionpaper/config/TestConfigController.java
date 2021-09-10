@@ -221,4 +221,12 @@ public class TestConfigController {
 		dto.setPercentileFile(file);
 		testConfigService.updateTestControlParams(paperId, dto);
 	}
+
+	@Transactional
+	@PostMapping("/update-institute-analysis-file")
+	@PreAuthorize("hasAnyRole('ROLE_TENANT_ADMIN', 'ROLE_USER_ADMIN', 'ROLE_STAFF')")
+	public void updateTestInstituteAnalysisFile(@RequestParam("file") MultipartFile file,
+			@NotBlank @RequestParam String paperId) {
+		testConfigService.updateTestInstituteAnalysisMetadata(paperId, file);
+	}
 }

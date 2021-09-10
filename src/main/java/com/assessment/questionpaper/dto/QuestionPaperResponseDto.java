@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.assessment.questionpaper.entity.InstituteAnalysisMetadata;
 import com.assessment.questionpaper.entity.PercentileScoreCard;
 
 import lombok.Data;
@@ -104,34 +105,15 @@ public class QuestionPaperResponseDto {
 
     @Data
     public static class TestControlParamsResponseDto {
-        private boolean hideScoreCard;
-        private boolean hideTopicWiseAnalysis;
-        private boolean doNotShowReport;
-        private boolean percentile;
-        private boolean hideAllCharts;
-        private boolean hideAreaWiseAnalysis;
-        private boolean reviewTestReport;
-        private boolean hideSolutionAndQuestionSummary;
-        private boolean sectionalBreakup;
-        private boolean hideDifficultyLevelAnalysis;
-        private boolean hideAnalysis;
-        private boolean hideRank;
-        private boolean sectionWiseAnalysis;
-        private boolean questionWiseAnalysis;
-        private boolean cutoff;
-        private boolean allowCalculator;
-        private boolean shuffleQuestions;
-        private boolean allowSectionSelection;
-        private boolean freeTest;
-        private boolean viewSolution;
-        private boolean viewTestResult;
+		private boolean doNotShowReport;
+		private boolean percentile;
+		private boolean allowCalculator;
+		private boolean shuffleQuestions;
 		private boolean sectionalTest;
-
-        private int maxAttempts;
-        private int overall;
-        private int reasoning;
-        private int comprehension;
-        private int aptitude;
+		private boolean allowInstituteAnalysisMetadata;
+		private boolean viewTestResult;
 		private PercentileScoreCard percentileScoreCard = new PercentileScoreCard();
+		private InstituteAnalysisMetadata instituteAnalysisMetadata = new InstituteAnalysisMetadata();
+
     }
 }
