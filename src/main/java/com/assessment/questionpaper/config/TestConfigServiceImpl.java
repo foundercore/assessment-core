@@ -992,7 +992,8 @@ public class TestConfigServiceImpl implements TestConfigService {
 			controlParams.setPercentile(controlParamsRequestDto.isPercentile());
 			controlParams.setSectionalTest(controlParamsRequestDto.isSectionalTest());
 			controlParams.setShuffleQuestions(controlParamsRequestDto.isShuffleQuestions());
-			controlParams.setAllowInstituteAnalysisMetadata(controlParamsRequestDto.isAllowInstituteAnalysisMetadata());;
+			controlParams.setAllowInstituteAnalysis(controlParamsRequestDto.isAllowInstituteAnalysis());
+			;
 		}
 		return controlParams;
 	}

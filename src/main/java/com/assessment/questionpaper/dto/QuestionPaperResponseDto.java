@@ -110,7 +110,7 @@ public class QuestionPaperResponseDto {
 		private boolean allowCalculator;
 		private boolean shuffleQuestions;
 		private boolean sectionalTest;
-		private boolean allowInstituteAnalysisMetadata;
+		private boolean allowInstituteAnalysis;
 		private boolean viewTestResult;
 		private PercentileScoreCard percentileScoreCard = new PercentileScoreCard();
 		private InstituteAnalysisMetadata instituteAnalysisMetadata = new InstituteAnalysisMetadata();

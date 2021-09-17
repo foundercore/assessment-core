@@ -24,10 +24,15 @@ import com.assessment.questionpaper.config.TestConfigRepository;
 import com.assessment.questionpaper.dto.EvaluationState;
 import com.assessment.questionpaper.entity.Assignment;
 import com.assessment.questionpaper.entity.AssignmentId;
+import com.assessment.questionpaper.entity.InstituteAnalysisMetadata.InstituteData;
 import com.assessment.questionpaper.entity.QuestionPaper;
+import com.assessment.questionpaper.entity.QuestionPaper.PaperSection;
 import com.assessment.questionpaper.entity.QuestionPaperId;
 import com.assessment.questionpaper.entity.Submission;
 import com.assessment.questionpaper.entity.Submission.SectionSummary;
+import com.assessment.questionpaper.report.dto.StudentTestAnalysisDto;
+import com.assessment.questionpaper.report.dto.StudentTestAnalysisDto.SectionAnalysisResponseDto;
+import com.assessment.questionpaper.report.dto.StudentTestAnalysisDto.StudentTestAnalysisResponseDto;
 import com.assessment.questionpaper.report.dto.StudentTestReportResponseDto;
 import com.assessment.questionpaper.report.dto.StudentTestReportResponseDto.SectionReport;
 import com.assessment.studentbatch.StudentBatch;
@@ -236,6 +241,62 @@ public class TestReportServiceImpl implements TestReportService {
 			}
 		}
 
+		return response;
+	}
+
+	@Override
+	public StudentTestAnalysisResponseDto getStudentTestAnalysisReport(
+			StudentTestAnalysisDto studentTestAnalysisData) {
+		QuestionPaperId id = new QuestionPaperId();
+		id.setTenantId(AuthUtils.getCurrentTenantId());
+		id.setQuestionPaperId(studentTestAnalysisData.getTestId());
+		QuestionPaper questionPaper = testConfigRepository.findById(id)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
+						String.format("Question paper %s does not exist", studentTestAnalysisData.getTestId())));
+
+		if (questionPaper.getControlParam() == null || !questionPaper.getControlParam().isPercentile()
+				|| !questionPaper.getControlParam().isAllowInstituteAnalysis()) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+					String.format("Question paper ' %s ' does not have percentile setup.", questionPaper.getName()));
+		}
+		StudentTestAnalysisResponseDto response = new StudentTestAnalysisResponseDto();
+		response.setTestId(studentTestAnalysisData.getTestId());
+		// get percentile information for test level
+		Map<Double, Double> percentileScore = questionPaper.getPercentileForTest();
+		if (percentileScore != null) {
+			Double percentile = percentileScore.get(studentTestAnalysisData.getTestMark());
+			response.setTestPercentile(percentile != null ? percentile : 0.0);
+		}
+
+		for (PaperSection section : questionPaper.getSections().values()) {
+			SectionAnalysisResponseDto sectionResult = new SectionAnalysisResponseDto();
+			sectionResult.setSectionId(section.getId());
+			sectionResult.setSectionName(section.getName());
+			// get percentile information for test level
+			Map<Double, Double> percentileSectionScore = questionPaper.getPercentileForSection(section.getId());
+			if (percentileSectionScore != null) {
+				Double percentile = percentileSectionScore
+						.get(studentTestAnalysisData.getSectionLevelMark().get(section.getId()));
+				sectionResult.setSectionPercentile(percentile != null ? percentile : 0.0);
+			}
+			response.getSectionLevelPercentile().add(sectionResult);
+		}
+
+		// get institute eligibility criteria
+		List<InstituteData> instituteDetails = questionPaper.getControlParam().getInstituteAnalysisMetadata()
+				.getInstituteData();
+		if (instituteDetails != null) {
+			for (InstituteData instituteDetail : instituteDetails) {
+				if (instituteDetail.getTestLevelPercentile() < response.getTestPercentile()) {
+					// add section level checks
+					// for (InstituteData instituteData : instituteData.getSectionLevelPercentile())
+					// {
+					//
+					// }
+					response.getInstituesSelectedIn().add(instituteDetail.getInstituteName());
+				}
+			}
+		}
 		return response;
 	}
 }
