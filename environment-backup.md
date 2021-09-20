@@ -28,8 +28,8 @@ aws configure
 	Create user
 	Stage details :
 		User: stage-assesment-api-ec2-user
-		AccessKey : AKIATWYA7B42VS3XGN5J
-		SecretKey: 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
+		AccessKey : sadasd*********asdasd
+		SecretKey: asdasd
 		
 # Create a role for EC2 for complete access to S3
 	
