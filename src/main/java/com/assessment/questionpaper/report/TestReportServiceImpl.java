@@ -287,13 +287,21 @@ public class TestReportServiceImpl implements TestReportService {
 				.getInstituteData();
 		if (instituteDetails != null) {
 			for (InstituteData instituteDetail : instituteDetails) {
-				if (instituteDetail.getTestLevelPercentile() < response.getTestPercentile()) {
+				if (instituteDetail.getTestLevelPercentile() <= response.getTestPercentile()) {
 					// add section level checks
-					// for (InstituteData instituteData : instituteData.getSectionLevelPercentile())
-					// {
-					//
-					// }
-					response.getInstituesSelectedIn().add(instituteDetail.getInstituteName());
+					boolean allsectionLevelPass = instituteDetail.getSectionLevelPercentile().entrySet().stream()
+							.allMatch(entry -> {
+						for (SectionAnalysisResponseDto sectionLevelPercentile : response.getSectionLevelPercentile()) {
+							if (entry.getValue() <= sectionLevelPercentile.getSectionPercentile()) {
+								return true;
+							}
+						}
+						return false;
+					});
+					// if all section level cutoff passed then add the institute
+					if (allsectionLevelPass) {
+						response.getInstituesSelectedIn().add(instituteDetail.getInstituteName());
+					}
 				}
 			}
 		}
