@@ -60,7 +60,7 @@ public class QuestionPaperRequestDto {
 		private boolean allowCalculator;
 		private boolean shuffleQuestions;
 		private boolean sectionalTest;
-		private boolean allowInstituteAnalysisMetadata;
+		private boolean allowInstituteAnalysis;
 		private boolean viewTestResult;
 		private MultipartFile percentileFile;
 		private MultipartFile institueAnalysisMetadataFile;

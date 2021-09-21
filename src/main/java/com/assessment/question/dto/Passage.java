@@ -1,4 +1,4 @@
-package com.assessment.question;
+package com.assessment.question.dto;
 
 import lombok.Data;
 import org.springframework.data.annotation.Id;

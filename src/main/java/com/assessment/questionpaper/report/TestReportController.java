@@ -10,9 +10,13 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.assessment.questionpaper.report.dto.StudentTestAnalysisDto;
+import com.assessment.questionpaper.report.dto.StudentTestAnalysisDto.StudentTestAnalysisResponseDto;
 import com.assessment.questionpaper.report.dto.StudentTestReportResponseDto;
 
 import lombok.extern.slf4j.Slf4j;
@@ -53,5 +57,12 @@ public class TestReportController {
 	@PreAuthorize("hasAnyRole('ROLE_TENANT_ADMIN', 'ROLE_USER_ADMIN', 'ROLE_STAFF')")
 	public List<StudentTestReportResponseDto> getStudentTestReport(@NotBlank @PathVariable("test-id") String testId) {
 		return service.getStudentTestReport(testId);
+	}
+
+	@PostMapping("/{test-id}/students-test-analysis")
+	@PreAuthorize("hasAnyRole('ROLE_TENANT_ADMIN', 'ROLE_USER_ADMIN', 'ROLE_STAFF', 'ROLE_STUDENT')")
+	public StudentTestAnalysisResponseDto getStudentTestAnalysisReport(
+			@RequestBody StudentTestAnalysisDto studentTestAnalysisData) {
+		return service.getStudentTestAnalysisReport(studentTestAnalysisData);
 	}
 }

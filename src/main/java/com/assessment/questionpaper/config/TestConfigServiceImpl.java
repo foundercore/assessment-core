@@ -36,8 +36,8 @@ import com.assessment.common.TimeUtility;
 import com.assessment.common.XLReader;
 import com.assessment.iam.commons.AuthUtils;
 import com.assessment.iam.dtos.UserRole;
-import com.assessment.question.Question;
 import com.assessment.question.QuestionService;
+import com.assessment.question.dto.Question;
 import com.assessment.questionpaper.dto.QuestionPaperPaginatedResponse;
 import com.assessment.questionpaper.dto.QuestionPaperRequestDto;
 import com.assessment.questionpaper.dto.QuestionPaperRequestDto.TestControlParamsRequestDto;
@@ -992,7 +992,8 @@ public class TestConfigServiceImpl implements TestConfigService {
 			controlParams.setPercentile(controlParamsRequestDto.isPercentile());
 			controlParams.setSectionalTest(controlParamsRequestDto.isSectionalTest());
 			controlParams.setShuffleQuestions(controlParamsRequestDto.isShuffleQuestions());
-			controlParams.setAllowInstituteAnalysisMetadata(controlParamsRequestDto.isAllowInstituteAnalysisMetadata());;
+			controlParams.setAllowInstituteAnalysis(controlParamsRequestDto.isAllowInstituteAnalysis());
+			;
 		}
 		return controlParams;
 	}

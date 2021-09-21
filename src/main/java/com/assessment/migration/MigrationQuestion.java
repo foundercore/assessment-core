@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 import com.assessment.common.StringUtility;
-import com.assessment.question.QuestionType;
+import com.assessment.question.dto.QuestionType;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

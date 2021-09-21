@@ -1,4 +1,4 @@
-package com.assessment.question;
+package com.assessment.question.dto;
 
 import java.util.ArrayList;
 import java.util.List;

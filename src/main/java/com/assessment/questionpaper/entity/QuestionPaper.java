@@ -150,7 +150,7 @@ public class QuestionPaper {
     public static class TestControlParams {
         private boolean viewTestResult;
 		private boolean sectionalTest;
-		private boolean allowInstituteAnalysisMetadata;
+		private boolean allowInstituteAnalysis;
 		private boolean percentile;
 		private boolean allowCalculator;
 		private boolean doNotShowReport;
@@ -169,6 +169,7 @@ public class QuestionPaper {
             response.setViewTestResult(this.viewTestResult);
 			response.setSectionalTest(this.sectionalTest);
 			response.setPercentileScoreCard(this.percentileScoreCard);
+			response.setAllowInstituteAnalysis(this.allowInstituteAnalysis);
 			response.setInstituteAnalysisMetadata(this.instituteAnalysisMetadata);
             return response;
         }

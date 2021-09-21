@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.assessment.question.Question;
+import com.assessment.question.dto.Question;
 import com.assessment.questionpaper.TestAssignmentService;
 import com.assessment.questionpaper.dto.QuestionPaperPaginatedResponse;
 import com.assessment.questionpaper.dto.QuestionPaperRequestDto;

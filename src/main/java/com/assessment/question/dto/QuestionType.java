@@ -1,4 +1,4 @@
-package com.assessment.question;
+package com.assessment.question.dto;
 
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
