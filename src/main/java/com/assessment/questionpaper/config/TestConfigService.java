@@ -7,7 +7,7 @@ import javax.validation.constraints.NotBlank;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.assessment.question.Question;
+import com.assessment.question.dto.Question;
 import com.assessment.questionpaper.dto.QuestionPaperPaginatedResponse;
 import com.assessment.questionpaper.dto.QuestionPaperRequestDto;
 import com.assessment.questionpaper.dto.QuestionPaperRequestDto.TestControlParamsRequestDto;
