@@ -37,7 +37,7 @@ aws configure
 # Map the IAM role to an EC2 instance
 	https://www.middlewareinventory.com/wp-content/uploads/2020/09/Screenshot-2020-11-22-at-2.02.54-PM.png
 	
-# Copy file to S3 using teh command
+# Copy file to S3 using the command
 aws s3 cp <Fully Qualified Local filename> s3://<S3BucketName>
 
 aws s3 cp /home/ec2-user/repo/assessment/deploymentCommand.txt s3://stage-assesment-api-ec2-user-backup/log-backup/
