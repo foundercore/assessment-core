@@ -14,13 +14,15 @@ import com.assessment.questionpaper.report.dto.StudentTestReportResponseDto;
 @Validated
 public interface TestReportService {
 
-    List<Map<String, Object>> getStudentBatchRankingReport(String assignmentId, String batchId);
+	List<Map<String, Object>> getStudentBatchRankingReport(String assignmentId, String batchId);
 
-    List<Map<String, Object>> getStudentAssignmentRanking(String assignmentId);
+	List<Map<String, Object>> getStudentAssignmentRanking(String assignmentId);
 
-    List<Map<String, Object>> getStudentAssignedToTest(String assignmentId);
+	List<Map<String, Object>> getStudentAssignedToTest(String assignmentId);
 
 	List<StudentTestReportResponseDto> getStudentTestReport(@NotBlank String testId);
 
 	StudentTestAnalysisResponseDto getStudentTestAnalysisReport(StudentTestAnalysisDto studentTestAnalysisData);
+
+	List<Map<String, Object>> getStudentTestReportExport(@NotBlank String testId);
 }

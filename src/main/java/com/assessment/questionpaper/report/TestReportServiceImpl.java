@@ -2,8 +2,12 @@ package com.assessment.questionpaper.report;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import javax.validation.constraints.NotBlank;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -245,8 +249,7 @@ public class TestReportServiceImpl implements TestReportService {
 	}
 
 	@Override
-	public StudentTestAnalysisResponseDto getStudentTestAnalysisReport(
-			StudentTestAnalysisDto studentTestAnalysisData) {
+	public StudentTestAnalysisResponseDto getStudentTestAnalysisReport(StudentTestAnalysisDto studentTestAnalysisData) {
 		QuestionPaperId id = new QuestionPaperId();
 		id.setTenantId(AuthUtils.getCurrentTenantId());
 		id.setQuestionPaperId(studentTestAnalysisData.getTestId());
@@ -291,13 +294,14 @@ public class TestReportServiceImpl implements TestReportService {
 					// add section level checks
 					boolean allsectionLevelPass = instituteDetail.getSectionLevelPercentile().entrySet().stream()
 							.allMatch(entry -> {
-						for (SectionAnalysisResponseDto sectionLevelPercentile : response.getSectionLevelPercentile()) {
-							if (entry.getValue() <= sectionLevelPercentile.getSectionPercentile()) {
-								return true;
-							}
-						}
-						return false;
-					});
+								for (SectionAnalysisResponseDto sectionLevelPercentile : response
+										.getSectionLevelPercentile()) {
+									if (entry.getValue() <= sectionLevelPercentile.getSectionPercentile()) {
+										return true;
+									}
+								}
+								return false;
+							});
 					// if all section level cutoff passed then add the institute
 					if (allsectionLevelPass) {
 						response.getInstituesSelectedIn().add(instituteDetail.getInstituteName());
@@ -306,5 +310,26 @@ public class TestReportServiceImpl implements TestReportService {
 			}
 		}
 		return response;
+	}
+
+	@Override
+	public List<Map<String, Object>> getStudentTestReportExport(@NotBlank String testId) {
+		return getTestReportAsMap(this.getStudentTestReport(testId).stream()
+				.sorted((s1, s2) -> Double.compare(s2.getMarkRecieved(), s1.getMarkRecieved()))
+				.collect(Collectors.toList()));
+	}
+
+	public List<Map<String, Object>> getTestReportAsMap(List<StudentTestReportResponseDto> studentTestReportData) {
+		List<Map<String, Object>> dataMap = new ArrayList<>();
+		for (StudentTestReportResponseDto studentTestReport : studentTestReportData) {
+			Map<String, Object> record = new LinkedHashMap<>();
+			record.put("Student Name", studentTestReport.getStudentName());
+			record.put("Student Email", studentTestReport.getStudentEmail());
+			record.put("Mark Recieved", studentTestReport.getMarkRecieved());
+			record.put("Total", studentTestReport.getTotalMark());
+			record.put("Percentile", studentTestReport.getPercentile());
+			dataMap.add(record);
+		}
+		return dataMap;
 	}
 }
