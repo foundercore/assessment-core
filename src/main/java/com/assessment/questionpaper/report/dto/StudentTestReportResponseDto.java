@@ -10,7 +10,7 @@ public class StudentTestReportResponseDto {
 	private String studentEmail;
 	private String name;
 	private Double markRecieved;
-	private int totalMark;
+	private Double totalMark;
 	private Double percentile;
 	private List<SectionReport> sectionReports;
 
@@ -18,8 +18,7 @@ public class StudentTestReportResponseDto {
 	public static class SectionReport {
 		private String sectionName;
 		private Double markRecieved;
-		private int totalMark;
+		private Double totalMark;
 		private Double percentile;
 	}
 }
-

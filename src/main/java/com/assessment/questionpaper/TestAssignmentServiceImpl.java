@@ -23,6 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.assessment.common.DateUtility;
 import com.assessment.common.StringUtility;
+import com.assessment.common.model.utility.PercentileScoreUtility;
 import com.assessment.iam.commons.AuthUtils;
 import com.assessment.iam.entities.User;
 import com.assessment.iam.services.UserService;
@@ -36,17 +37,17 @@ import com.assessment.questionpaper.dto.AssignmentRequestDto;
 import com.assessment.questionpaper.dto.AssignmentResponseDto;
 import com.assessment.questionpaper.dto.EvaluationState;
 import com.assessment.questionpaper.dto.QuestionPaperResponseDto;
+import com.assessment.questionpaper.dto.QuestionPaperResponseDto.PaperSectionResponseDto;
+import com.assessment.questionpaper.dto.QuestionPaperResponseDto.TestQuestionResponseDto;
 import com.assessment.questionpaper.dto.QuestionPaperStatus;
 import com.assessment.questionpaper.dto.SaveAnswerRequestDto;
 import com.assessment.questionpaper.dto.SubmissionResponseDto;
+import com.assessment.questionpaper.dto.SubmissionResponseDto.SectionSummaryResponseDto;
 import com.assessment.questionpaper.entity.Assignment;
 import com.assessment.questionpaper.entity.AssignmentId;
 import com.assessment.questionpaper.entity.Metric;
 import com.assessment.questionpaper.entity.QuestionPaper;
-import com.assessment.questionpaper.entity.QuestionPaper.PaperSection;
-import com.assessment.questionpaper.entity.QuestionPaper.TestQuestion;
 import com.assessment.questionpaper.entity.Submission;
-import com.assessment.questionpaper.entity.Submission.SectionSummary;
 import com.assessment.questionpaper.entity.SubmissionId;
 import com.assessment.questionpaper.report.TestSubmissionRepository;
 import com.assessment.studentbatch.StudentBatch;
@@ -564,8 +565,19 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
 				questions.forEach(q -> questionMap.put(q.getId().getQuestionId(), q));
 			}
 		}
-		QuestionPaper qp = testConfigService.getEntity(getAssignmentEntity(submission.getAssignmentId()).getTestId());
-
+		QuestionPaperResponseDto qp = testConfigService
+				.getQuestionPaper(getAssignmentEntity(submission.getAssignmentId()).getTestId());
+		/*
+		 * get question sequence number mapping
+		 */
+		Map<String, TestQuestionResponseDto> questionDetails = new HashMap<>();
+		Map<String, PaperSectionResponseDto> sectionDetails = new HashMap<>();
+		for (PaperSectionResponseDto paperSection : qp.getSections()) {
+			sectionDetails.put(paperSection.getId(), paperSection);
+			for (TestQuestionResponseDto testQuestionResponseDto : paperSection.getQuestions()) {
+				questionDetails.put(testQuestionResponseDto.getId(), testQuestionResponseDto);
+			}
+		}
 		SubmissionResponseDto responseDto = new SubmissionResponseDto();
 		responseDto.setSubmissionId(submission.getId().getSubmissionId());
 		responseDto.setAssignmentId(submission.getAssignmentId());
@@ -577,28 +589,27 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
 		responseDto.setLastUpdatedOn(submission.getLastUpdatedOn());
 		responseDto.setTotalTestTimeTakenInSec(submission.getTotalTestTimeTakenInSec());
 		/* test related details */
-		responseDto.setTestId(qp.getId().getQuestionPaperId());
+		responseDto.setTestId(qp.getQuestionPaperId());
 		responseDto.setTestName(qp.getName());
 		/* summary */
 		if (submission.getSummary() != null) {
 			responseDto.setSummary(submission.getSummary().responseDto());
 			for (SubmissionResponseDto.SectionSummaryResponseDto ssdto : responseDto.getSummary().getSections()) {
-				ssdto.setSectionName(qp.getSections().get(ssdto.getSectionId()).getName());
+				ssdto.setSectionName(sectionDetails.get(ssdto.getSectionId()).getName());
 			}
 		}
-		/*
-		 * get question sequence number mapping
-		 */
-		Map<String, TestQuestion> questionDetails = new HashMap<>();
-		for (PaperSection paperSection : qp.getSections().values()) {
-			questionDetails.putAll(paperSection.getQuestions());
+
+		for (SectionSummaryResponseDto summary : responseDto.getSummary().getSections()) {
+
+			summary.getMetric().setPercentileScore(PercentileScoreUtility.getPercentileForSectionMark(qp,
+					summary.getSectionId(), summary.getMetric().getMarksReceived()));
 		}
 
 		if (submission.getSections() != null) {
 			for (Submission.Section section : submission.getSections().values()) {
 				SubmissionResponseDto.SectionResponseDto sectionDto = new SubmissionResponseDto.SectionResponseDto();
 				sectionDto.setSectionId(section.getSectionId());
-				sectionDto.setSectionName(qp.getSections().get(section.getSectionId()).getName());
+				sectionDto.setSectionName(sectionDetails.get(section.getSectionId()).getName());
 				if (section.getAnswers() != null) {
 					for (Submission.Answer answer : section.getAnswers().values()) {
 						SubmissionResponseDto.AnswerResponseDto dto = answer.responseDto();
@@ -1021,36 +1032,49 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
 				difficultySummary.getMetric().addTotal(marks, time, totalMarks);
 				topicSummary.getMetric().addTotal(marks, time, totalMarks);
 			}
-			SectionSummary tempSectionSummary = summary.getSectionSummaryById(section.getSectionId());
-			Double marksReceived = tempSectionSummary.getMetric().getMarksReceived();
-			Map<Double, Double> sectionLevelPercentile = getPercentileForSection(testConfig, section.getSectionId());
-			if (sectionLevelPercentile != null && sectionLevelPercentile.get(marksReceived) != null) {
-				tempSectionSummary.getMetric().setPercentileScore(sectionLevelPercentile.get(marksReceived));
-			}
+			// TODO - commenting this to ensure all reports are having the percentile
+			// information on the fly
+			// SectionSummary tempSectionSummary =
+			// summary.getSectionSummaryById(section.getSectionId());
+			// Double marksReceived = tempSectionSummary.getMetric().getMarksReceived();
+			// tempSectionSummary.getMetric().setPercentileScore(PercentileScoreUtility
+			// .getPercentileForSectionMark(testConfig, section.getSectionId(),
+			// marksReceived));
 
 		}
 		return summary;
 	}
 
-	public Map<Double, Double> getPercentileForSection(QuestionPaperResponseDto testConfig, String sectionId) {
-		if (testConfig.getControlParam() != null && testConfig.getControlParam().getPercentileScoreCard() != null
-				&& testConfig.getControlParam().getPercentileScoreCard().getSectionLevelPercentile() != null
-				&& testConfig.getControlParam().getPercentileScoreCard().getSectionLevelPercentile()
-						.get(sectionId) != null) {
-			return testConfig.getControlParam().getPercentileScoreCard().getSectionLevelPercentile().get(sectionId);
-		}
-
-		return null;
-	}
-
-	public Map<Double, Double> getPercentileForTest(QuestionPaperResponseDto testConfig) {
-		if (testConfig.getControlParam() != null && testConfig.getControlParam().getPercentileScoreCard() != null
-				&& testConfig.getControlParam().getPercentileScoreCard().getTestLevelPercentile() != null) {
-			return testConfig.getControlParam().getPercentileScoreCard().getTestLevelPercentile();
-		}
-
-		return null;
-	}
+	// public Map<Double, Double> getPercentileForSection(QuestionPaperResponseDto
+	// testConfig, String sectionId) {
+	// if (testConfig.getControlParam() != null &&
+	// testConfig.getControlParam().getPercentileScoreCard() != null
+	// &&
+	// testConfig.getControlParam().getPercentileScoreCard().getSectionLevelPercentile()
+	// != null
+	// &&
+	// testConfig.getControlParam().getPercentileScoreCard().getSectionLevelPercentile()
+	// .get(sectionId) != null) {
+	// return
+	// testConfig.getControlParam().getPercentileScoreCard().getSectionLevelPercentile().get(sectionId);
+	// }
+	//
+	// return null;
+	// }
+	//
+	// public Map<Double, Double> getPercentileForTest(QuestionPaperResponseDto
+	// testConfig) {
+	// if (testConfig.getControlParam() != null &&
+	// testConfig.getControlParam().getPercentileScoreCard() != null
+	// &&
+	// testConfig.getControlParam().getPercentileScoreCard().getTestLevelPercentile()
+	// != null) {
+	// return
+	// testConfig.getControlParam().getPercentileScoreCard().getTestLevelPercentile();
+	// }
+	//
+	// return null;
+	// }
 
 	private String getDifficultyLevel(String input) {
 		if (DifficultyLevel.VERY_HARD.value().equalsIgnoreCase(input)) {
