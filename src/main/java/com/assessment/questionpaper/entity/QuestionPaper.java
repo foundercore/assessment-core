@@ -21,134 +21,117 @@ import lombok.Data;
 @Data
 @Document(collection = QuestionPaper.COLLECTION_NAME)
 public class QuestionPaper {
-    public static final String COLLECTION_NAME = "question_paper";
+	public static final String COLLECTION_NAME = "question_paper";
 
-    @Id
-    private QuestionPaperId id;
+	@Id
+	private QuestionPaperId id;
 
-    @NotNull
-    @NotEmpty
-    private String name;
+	@NotNull
+	@NotEmpty
+	private String name;
 
-    private String subject;
-    private String type;
-    private int totalDurationInMinutes;
-    private int minimumDurationInMinutes;
+	private String subject;
+	private String type;
+	private int totalDurationInMinutes;
+	private int minimumDurationInMinutes;
 
-    private String instructions;
-    private int totalMarks;
-    private String status;
+	private String instructions;
+	private int totalMarks;
+	private String status;
 
-    Map<String, PaperSection> sections;
-    List<String> sectionOrder;
+	Map<String, PaperSection> sections;
+	List<String> sectionOrder;
 
-    private List<String> tags;
+	private List<String> tags;
 
-    /* activity logs */
-    private String createdBy;
-    private Date createdOn;
-    @LastModifiedBy
-    private String lastUpdatedBy;
-    @LastModifiedDate
-    private Date lastUpdatedOn;
+	/* activity logs */
+	private String createdBy;
+	private Date createdOn;
+	@LastModifiedBy
+	private String lastUpdatedBy;
+	@LastModifiedDate
+	private Date lastUpdatedOn;
 
-    /* migration */
-    List<PaperMigration> migration;
+	/* migration */
+	List<PaperMigration> migration;
 
-    /* flow control parameters */
-    TestControlParams controlParam;
+	/* flow control parameters */
+	TestControlParams controlParam;
 
 	private boolean calculatorRequired;
 
-    public void addTags(String fileName) {
-        if (this.tags == null) this.tags = new ArrayList<>();
-        this.tags.add(fileName);
-    }
-
-    public void addSection(PaperSection section) {
-        if (this.sections == null) this.sections = new LinkedHashMap<>();
-        this.sections.put(section.getId(), section);
-    }
-
-    public void addMigration(PaperMigration migration) {
-        if (this.migration == null) this.migration = new ArrayList<>();
-        this.migration.add(migration);
-    }
-
-    public List<String> getSubsections(String sectionId){
-        List<String> subsections = new ArrayList<>();
-        if (sections != null && sections.containsKey(sectionId)){
-            sections.values().forEach(s-> {
-                if (sectionId.equalsIgnoreCase(s.getParentSection())){
-                    subsections.add(s.getId());
-                }
-            });
-        }
-        return subsections;
-    }
-
-	public Map<Double, Double> getPercentileForSection(String sectionId) {
-		if (this.getControlParam() != null && this.getControlParam().isPercentile()
-				&& this.getControlParam().getPercentileScoreCard() != null
-				&& this.getControlParam().getPercentileScoreCard().getSectionLevelPercentile() != null
-				&& this.getControlParam().getPercentileScoreCard().getSectionLevelPercentile().get(sectionId) != null) {
-			return this.getControlParam().getPercentileScoreCard().getSectionLevelPercentile().get(sectionId);
-		}
-
-		return null;
+	public void addTags(String fileName) {
+		if (this.tags == null)
+			this.tags = new ArrayList<>();
+		this.tags.add(fileName);
 	}
 
-	public Map<Double, Double> getPercentileForTest() {
-		if (this.getControlParam() != null && this.getControlParam().getPercentileScoreCard() != null
-				&& this.getControlParam().isPercentile()
-				&& this.getControlParam().getPercentileScoreCard().getTestLevelPercentile() != null) {
-			return this.getControlParam().getPercentileScoreCard().getTestLevelPercentile();
-		}
-
-		return null;
+	public void addSection(PaperSection section) {
+		if (this.sections == null)
+			this.sections = new LinkedHashMap<>();
+		this.sections.put(section.getId(), section);
 	}
 
-    @Data
-    public static class PaperSection {
+	public void addMigration(PaperMigration migration) {
+		if (this.migration == null)
+			this.migration = new ArrayList<>();
+		this.migration.add(migration);
+	}
 
-        private String id;
-        private String name;
-        private String instructions;
-        private int durationInMinutes;
-        private String difficultyLevel;
-        private Map<String, TestQuestion> questions;
+	public List<String> getSubsections(String sectionId) {
+		List<String> subsections = new ArrayList<>();
+		if (sections != null && sections.containsKey(sectionId)) {
+			sections.values().forEach(s -> {
+				if (sectionId.equalsIgnoreCase(s.getParentSection())) {
+					subsections.add(s.getId());
+				}
+			});
+		}
+		return subsections;
+	}
 
-        /* to support nested sub-sections */
-        private String parentSection;
-        List<String> subSectionOrder;
+	@Data
+	public static class PaperSection {
 
-        public void addQuestion(TestQuestion question) {
-            if (this.questions == null) this.questions = new LinkedHashMap<>();
-            this.questions.put(question.getId(), question);
-        }
-    }
+		private String id;
+		private String name;
+		private String instructions;
+		private int durationInMinutes;
+		private String difficultyLevel;
+		private Map<String, TestQuestion> questions;
 
-    @Data
-    public static class TestQuestion {
+		/* to support nested sub-sections */
+		private String parentSection;
+		List<String> subSectionOrder;
 
-        private String id;
-        private double positiveMark = 0;
-        private double negativeMark = 0;
-        private double skipMark = 0;
+		public void addQuestion(TestQuestion question) {
+			if (this.questions == null)
+				this.questions = new LinkedHashMap<>();
+			this.questions.put(question.getId(), question);
+		}
+	}
+
+	@Data
+	public static class TestQuestion {
+
+		private String id;
+		private double positiveMark = 0;
+		private double negativeMark = 0;
+		private double skipMark = 0;
 		private int sequenceNumber = 0;
-    }
+	}
 
-    @Data
-    public static class PaperMigration {
-        private String status;
-        private String activityBy;
-        private Date activityOn;
-        private String remarks;
-    }
+	@Data
+	public static class PaperMigration {
+		private String status;
+		private String activityBy;
+		private Date activityOn;
+		private String remarks;
+	}
 
-    @Data
-    public static class TestControlParams {
-        private boolean viewTestResult;
+	@Data
+	public static class TestControlParams {
+		private boolean viewTestResult;
 		private boolean sectionalTest;
 		private boolean allowInstituteAnalysis;
 		private boolean percentile;
@@ -159,21 +142,20 @@ public class QuestionPaper {
 		private PercentileScoreCard percentileScoreCard = new PercentileScoreCard();
 		private InstituteAnalysisMetadata instituteAnalysisMetadata = new InstituteAnalysisMetadata();
 
-        public QuestionPaperResponseDto.TestControlParamsResponseDto toResponseDto(){
-            QuestionPaperResponseDto.TestControlParamsResponseDto response = new QuestionPaperResponseDto.TestControlParamsResponseDto();
+		public QuestionPaperResponseDto.TestControlParamsResponseDto toResponseDto() {
+			QuestionPaperResponseDto.TestControlParamsResponseDto response = new QuestionPaperResponseDto.TestControlParamsResponseDto();
 
-            response.setDoNotShowReport(this.doNotShowReport);
-            response.setPercentile(this.percentile);
-            response.setAllowCalculator(this.allowCalculator);
-            response.setShuffleQuestions(this.shuffleQuestions);
-            response.setViewTestResult(this.viewTestResult);
+			response.setDoNotShowReport(this.doNotShowReport);
+			response.setPercentile(this.percentile);
+			response.setAllowCalculator(this.allowCalculator);
+			response.setShuffleQuestions(this.shuffleQuestions);
+			response.setViewTestResult(this.viewTestResult);
 			response.setSectionalTest(this.sectionalTest);
 			response.setPercentileScoreCard(this.percentileScoreCard);
 			response.setAllowInstituteAnalysis(this.allowInstituteAnalysis);
 			response.setInstituteAnalysisMetadata(this.instituteAnalysisMetadata);
-            return response;
-        }
-    }
-
+			return response;
+		}
+	}
 
 }

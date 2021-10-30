@@ -6,6 +6,7 @@ package com.assessment.common.model.utility;
 import java.util.Map;
 
 import com.assessment.questionpaper.dto.QuestionPaperResponseDto;
+import com.assessment.questionpaper.entity.QuestionPaper.TestControlParams;
 
 /**
  * @author kunwar
@@ -28,6 +29,25 @@ public class PercentileScoreUtility {
 		if (testConfig.getControlParam() != null && testConfig.getControlParam().getPercentileScoreCard() != null
 				&& testConfig.getControlParam().getPercentileScoreCard().getTestLevelPercentile() != null) {
 			return testConfig.getControlParam().getPercentileScoreCard().getTestLevelPercentile();
+		}
+
+		return null;
+	}
+
+	public static Map<Double, Double> getPercentileForSection(TestControlParams controlParam, String sectionId) {
+		if (controlParam != null && controlParam.isPercentile() && controlParam.getPercentileScoreCard() != null
+				&& controlParam.getPercentileScoreCard().getSectionLevelPercentile() != null
+				&& controlParam.getPercentileScoreCard().getSectionLevelPercentile().get(sectionId) != null) {
+			return controlParam.getPercentileScoreCard().getSectionLevelPercentile().get(sectionId);
+		}
+
+		return null;
+	}
+
+	public static Map<Double, Double> getPercentileForTest(TestControlParams controlParam) {
+		if (controlParam != null && controlParam.getPercentileScoreCard() != null && controlParam.isPercentile()
+				&& controlParam.getPercentileScoreCard().getTestLevelPercentile() != null) {
+			return controlParam.getPercentileScoreCard().getTestLevelPercentile();
 		}
 
 		return null;
