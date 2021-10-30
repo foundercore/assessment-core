@@ -1032,49 +1032,10 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
 				difficultySummary.getMetric().addTotal(marks, time, totalMarks);
 				topicSummary.getMetric().addTotal(marks, time, totalMarks);
 			}
-			// TODO - commenting this to ensure all reports are having the percentile
-			// information on the fly
-			// SectionSummary tempSectionSummary =
-			// summary.getSectionSummaryById(section.getSectionId());
-			// Double marksReceived = tempSectionSummary.getMetric().getMarksReceived();
-			// tempSectionSummary.getMetric().setPercentileScore(PercentileScoreUtility
-			// .getPercentileForSectionMark(testConfig, section.getSectionId(),
-			// marksReceived));
 
 		}
 		return summary;
 	}
-
-	// public Map<Double, Double> getPercentileForSection(QuestionPaperResponseDto
-	// testConfig, String sectionId) {
-	// if (testConfig.getControlParam() != null &&
-	// testConfig.getControlParam().getPercentileScoreCard() != null
-	// &&
-	// testConfig.getControlParam().getPercentileScoreCard().getSectionLevelPercentile()
-	// != null
-	// &&
-	// testConfig.getControlParam().getPercentileScoreCard().getSectionLevelPercentile()
-	// .get(sectionId) != null) {
-	// return
-	// testConfig.getControlParam().getPercentileScoreCard().getSectionLevelPercentile().get(sectionId);
-	// }
-	//
-	// return null;
-	// }
-	//
-	// public Map<Double, Double> getPercentileForTest(QuestionPaperResponseDto
-	// testConfig) {
-	// if (testConfig.getControlParam() != null &&
-	// testConfig.getControlParam().getPercentileScoreCard() != null
-	// &&
-	// testConfig.getControlParam().getPercentileScoreCard().getTestLevelPercentile()
-	// != null) {
-	// return
-	// testConfig.getControlParam().getPercentileScoreCard().getTestLevelPercentile();
-	// }
-	//
-	// return null;
-	// }
 
 	private String getDifficultyLevel(String input) {
 		if (DifficultyLevel.VERY_HARD.value().equalsIgnoreCase(input)) {
