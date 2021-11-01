@@ -42,7 +42,6 @@ import com.assessment.questionpaper.dto.QuestionPaperResponseDto.TestQuestionRes
 import com.assessment.questionpaper.dto.QuestionPaperStatus;
 import com.assessment.questionpaper.dto.SaveAnswerRequestDto;
 import com.assessment.questionpaper.dto.SubmissionResponseDto;
-import com.assessment.questionpaper.dto.SubmissionResponseDto.SectionSummaryResponseDto;
 import com.assessment.questionpaper.entity.Assignment;
 import com.assessment.questionpaper.entity.AssignmentId;
 import com.assessment.questionpaper.entity.Metric;
@@ -596,13 +595,10 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
 			responseDto.setSummary(submission.getSummary().responseDto());
 			for (SubmissionResponseDto.SectionSummaryResponseDto ssdto : responseDto.getSummary().getSections()) {
 				ssdto.setSectionName(sectionDetails.get(ssdto.getSectionId()).getName());
+				// set up percentile records for Marks Recieved
+				ssdto.getMetric().setPercentileScore(PercentileScoreUtility.getPercentileForSectionMark(qp,
+						ssdto.getSectionId(), ssdto.getMetric().getMarksReceived()));
 			}
-		}
-
-		for (SectionSummaryResponseDto summary : responseDto.getSummary().getSections()) {
-
-			summary.getMetric().setPercentileScore(PercentileScoreUtility.getPercentileForSectionMark(qp,
-					summary.getSectionId(), summary.getMetric().getMarksReceived()));
 		}
 
 		if (submission.getSections() != null) {
