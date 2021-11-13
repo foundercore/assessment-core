@@ -235,7 +235,7 @@ public class TestReportServiceImpl implements TestReportService {
 									questionPaper.getControlParam(), sectionSummary.getSectionId());
 							if (percentileSectionScore != null) {
 								Double percentile = percentileSectionScore
-										.get(submission.getSummary().getMetric().getMarksReceived());
+										.get(sectionSummary.getMetric().getMarksReceived());
 								sectionReport.setPercentile(percentile != null ? percentile : 0.0);
 							}
 							record.getSectionReports().add(sectionReport);
