@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.assessment.common.StringUtility;
+import com.assessment.common.model.utility.PercentileScoreUtility;
 import com.assessment.iam.commons.AuthUtils;
 import com.assessment.iam.dtos.UserRole;
 import com.assessment.iam.entities.User;
@@ -130,7 +131,7 @@ public class TestReportServiceImpl implements TestReportService {
 				paperid.setQuestionPaperId(assignment.getTestId());
 				QuestionPaper questionPaper = mongoTemplate.findById(paperid, QuestionPaper.class);
 				if (questionPaper != null) {
-					percentileScore = questionPaper.getPercentileForTest();
+					percentileScore = PercentileScoreUtility.getPercentileForTest(questionPaper.getControlParam());
 				}
 			}
 		}
@@ -182,7 +183,8 @@ public class TestReportServiceImpl implements TestReportService {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No test exists");
 		}
 		// get percentile information for test level
-		Map<Double, Double> percentileScore = questionPaper.getPercentileForTest();
+		Map<Double, Double> percentileScore = PercentileScoreUtility
+				.getPercentileForTest(questionPaper.getControlParam());
 		Criteria filter = Criteria.where("_id.tenantId").is(AuthUtils.getCurrentTenantId())
 				.andOperator(new Criteria("testId").is(testId));
 		Query getAssignmentQuery = new Query();
@@ -229,11 +231,11 @@ public class TestReportServiceImpl implements TestReportService {
 							sectionReport.setTotalMark(sectionSummary.getMetric().getTotalMarks());
 
 							// get percentile information for test level
-							Map<Double, Double> percentileSectionScore = questionPaper
-									.getPercentileForSection(sectionSummary.getSectionId());
+							Map<Double, Double> percentileSectionScore = PercentileScoreUtility.getPercentileForSection(
+									questionPaper.getControlParam(), sectionSummary.getSectionId());
 							if (percentileSectionScore != null) {
 								Double percentile = percentileSectionScore
-										.get(submission.getSummary().getMetric().getMarksReceived());
+										.get(sectionSummary.getMetric().getMarksReceived());
 								sectionReport.setPercentile(percentile != null ? percentile : 0.0);
 							}
 							record.getSectionReports().add(sectionReport);
@@ -265,7 +267,8 @@ public class TestReportServiceImpl implements TestReportService {
 		StudentTestAnalysisResponseDto response = new StudentTestAnalysisResponseDto();
 		response.setTestId(studentTestAnalysisData.getTestId());
 		// get percentile information for test level
-		Map<Double, Double> percentileScore = questionPaper.getPercentileForTest();
+		Map<Double, Double> percentileScore = PercentileScoreUtility
+				.getPercentileForTest(questionPaper.getControlParam());
 		if (percentileScore != null) {
 			Double percentile = percentileScore.get(studentTestAnalysisData.getTestMark());
 			response.setTestPercentile(percentile != null ? percentile : 0.0);
@@ -276,7 +279,8 @@ public class TestReportServiceImpl implements TestReportService {
 			sectionResult.setSectionId(section.getId());
 			sectionResult.setSectionName(section.getName());
 			// get percentile information for test level
-			Map<Double, Double> percentileSectionScore = questionPaper.getPercentileForSection(section.getId());
+			Map<Double, Double> percentileSectionScore = PercentileScoreUtility
+					.getPercentileForSection(questionPaper.getControlParam(), section.getId());
 			if (percentileSectionScore != null) {
 				Double percentile = percentileSectionScore
 						.get(studentTestAnalysisData.getSectionLevelMark().get(section.getId()));
