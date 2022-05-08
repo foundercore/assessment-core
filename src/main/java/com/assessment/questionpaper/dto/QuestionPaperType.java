@@ -2,12 +2,13 @@ package com.assessment.questionpaper.dto;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import javax.validation.constraints.NotNull;
 
 public enum QuestionPaperType {
-	NMAT("NMAT"), DEFAULT("DEFAULT"), FULL_LENGTH("FULL_LENGTH");
+	DEFAULT("DEFAULT"), FULL_LENGTH("FULL_LENGTH"), NMAT("NMAT"), QUICK_FOCUSED_EXCERCISE("QUICK FOCUSED EXCERCISE"),
+	PRACTICE_EXERCISE("PRACTICE EXERCISE"), SECTIONAL("SECTIONAL"), UNIT_EXCERCISE("UNIT EXCERCISE"),
+	CLASS_EXCERCISE("CLASS EXCERCISE");
 
 	private final String questionPaperType;
 
@@ -29,13 +30,15 @@ public enum QuestionPaperType {
 
 	@NotNull
 	public static QuestionPaperType resolve(String qt) {
+		if (qt == null) {
+			return null;
+		}
 		QuestionPaperType[] var1 = values();
 		for (QuestionPaperType status : var1) {
-			if (Objects.equals(status.questionPaperType, qt)) {
+			if (status.questionPaperType.trim().toLowerCase().equals(qt.trim().toLowerCase())) {
 				return status;
 			}
 		}
-
 		return null;
 	}
 
