@@ -18,51 +18,57 @@ import com.assessment.questionpaper.entity.QuestionPaper;
 @Validated
 public interface TestConfigService {
 
-    String createQuestionPaper(QuestionPaperRequestDto questionPaperRequestDto);
+	String createQuestionPaper(QuestionPaperRequestDto questionPaperRequestDto);
 
-    boolean exists(String paperId);
+	boolean exists(String paperId);
 
-    QuestionPaper getEntity(String paperId);
+	QuestionPaper getEntity(String paperId);
 
-    void deleteQuestionPaper(String paperId);
+	void deleteQuestionPaper(String paperId);
 
-    void softDeleteQuestionPaper(String paperId);
+	void softDeleteQuestionPaper(String paperId);
 
-    void updateQuestionPaperMetadata(String paperId, QuestionPaperRequestDto questionPaperRequestDto);
+	void updateQuestionPaperMetadata(String paperId, QuestionPaperRequestDto questionPaperRequestDto);
 
-    String addQuestionPaperSection(String paperId, QuestionPaperRequestDto.PaperSectionRequestDto paperSectionRequestDto);
+	String addQuestionPaperSection(String paperId,
+			QuestionPaperRequestDto.PaperSectionRequestDto paperSectionRequestDto);
 
-    void updateQuestionPaperSectionMetadata(String paperId, String sectionId, QuestionPaperRequestDto.PaperSectionRequestDto paperSectionRequestDto);
+	void updateQuestionPaperSectionMetadata(String paperId, String sectionId,
+			QuestionPaperRequestDto.PaperSectionRequestDto paperSectionRequestDto);
 
-    void removeQuestionPaperSection(String paperId, String sectionId);
+	void removeQuestionPaperSection(String paperId, String sectionId);
 
-    void addNewQuestionsInQuestionPaperSection(String paperId, String sectionId, List<QuestionPaperRequestDto.TestQuestionRequestDto> questionDtos);
+	void addNewQuestionsInQuestionPaperSection(String paperId, String sectionId,
+			List<QuestionPaperRequestDto.TestQuestionRequestDto> questionDtos);
 
-    void removeQuestionsFromQuestionPaperSection(String paperId, String sectionId, List<String> questions);
+	void removeQuestionsFromQuestionPaperSection(String paperId, String sectionId, List<String> questions);
 
-    void updateQuestionsInQuestionPaperSection(String paperId, String sectionId, List<QuestionPaperRequestDto.TestQuestionRequestDto> questionDtos);
+	void updateQuestionsInQuestionPaperSection(String paperId, String sectionId,
+			List<QuestionPaperRequestDto.TestQuestionRequestDto> questionDtos);
 
-    void initiateQuestionPaperVerification(String paperId);
+	void initiateQuestionPaperVerification(String paperId);
 
-    void verifyQuestionPaper(String paperId);
+	void verifyQuestionPaper(String paperId);
 
-    void rejectQuestionPaperVerification(String paperId, String rejectionReason);
+	void rejectQuestionPaperVerification(String paperId, String rejectionReason);
 
-    List<QuestionPaperResponseDto> getQuestionPapersPendingToVerify();
+	List<QuestionPaperResponseDto> getQuestionPapersPendingToVerify();
 
-    QuestionPaperResponseDto getQuestionPaper(String paperId);
+	QuestionPaperResponseDto getQuestionPaper(String paperId);
 
-    QuestionPaperPaginatedResponse searchQuestionPapers(SearchQuestionPaperDto filter);
+	QuestionPaperPaginatedResponse searchQuestionPapers(SearchQuestionPaperDto filter);
 
-    void archiveQuestionPaper(String paperId);
+	void archiveQuestionPaper(String paperId);
 
-    List<Question> getQuestionPaperLinkedQuestions(String paperId);
+	List<Question> getQuestionPaperLinkedQuestions(String paperId);
 
-    Question getQuestionPaperLinkedQuestion(String paperId, String questionId);
+	Question getQuestionPaperLinkedQuestion(String paperId, String questionId);
 
-    void publishQuestionPaper(String paperId);
+	void publishQuestionPaper(String paperId);
 
-    List<String> getQuestionPaperSubjects();
+	List<String> getQuestionPaperSubjects();
+
+	List<String> getQuestionPaperTypes();
 
 	void updateTestControlParams(String paperId, TestControlParamsRequestDto controlParams);
 
