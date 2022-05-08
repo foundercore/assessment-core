@@ -286,7 +286,6 @@ public class TestConfigServiceImpl implements TestConfigService {
 					String.format("totalMarks %s can't be negative/zero", dto.getTotalMarks()));
 		}
 
-
 		if (StringUtils.isNotEmpty(dto.getName())) {
 			questionPaper.setName(dto.getName());
 		}
@@ -951,6 +950,13 @@ public class TestConfigServiceImpl implements TestConfigService {
 	}
 
 	@Override
+	public List<String> getQuestionPaperTypes() {
+		Query query = new Query();
+		query.addCriteria(Criteria.where("_id.tenantId").is(AuthUtils.getCurrentTenantId()));
+		return mongoTemplate.findDistinct(query, "type", QuestionPaper.COLLECTION_NAME, String.class);
+	}
+
+	@Override
 	public void updateTestControlParams(String paperId, TestControlParamsRequestDto controlParams) {
 		QuestionPaperId id = new QuestionPaperId();
 		id.setTenantId(AuthUtils.getCurrentTenantId());
@@ -1067,13 +1073,11 @@ public class TestConfigServiceImpl implements TestConfigService {
 						.parseStringToOptionalDouble(String.valueOf(record.get(sectionName.getKey() + " Percentile")));
 				if (sectionMark != null) {
 					if (percentileScoreCard.getSectionLevelPercentile().get(sectionName.getValue()) != null) {
-						percentileScoreCard.getSectionLevelPercentile().get(sectionName.getValue())
-								.put(sectionMark, sectionPercentileMark);
-					}else {
-						percentileScoreCard.getSectionLevelPercentile().put(sectionName.getValue(),
-								new HashMap<>());
-						percentileScoreCard.getSectionLevelPercentile().get(sectionName.getValue())
-								.put(sectionMark,
+						percentileScoreCard.getSectionLevelPercentile().get(sectionName.getValue()).put(sectionMark,
+								sectionPercentileMark);
+					} else {
+						percentileScoreCard.getSectionLevelPercentile().put(sectionName.getValue(), new HashMap<>());
+						percentileScoreCard.getSectionLevelPercentile().get(sectionName.getValue()).put(sectionMark,
 								sectionPercentileMark);
 					}
 				}
@@ -1084,8 +1088,8 @@ public class TestConfigServiceImpl implements TestConfigService {
 		return percentileScoreCard;
 
 	}
-	private QuestionPaperResponseDto buildQuestionPaperResponse(QuestionPaper qp, boolean detailed) {
 
+	private QuestionPaperResponseDto buildQuestionPaperResponse(QuestionPaper qp, boolean detailed) {
 
 		QuestionPaperResponseDto dto = new QuestionPaperResponseDto();
 		dto.setQuestionPaperId(qp.getId().getQuestionPaperId());
@@ -1329,8 +1333,7 @@ public class TestConfigServiceImpl implements TestConfigService {
 	}
 
 	public InstituteAnalysisMetadata initReadingInstituteAnalysisMetadataFile(MultipartFile file,
-			QuestionPaper questionPaper)
-			throws IOException, CsvValidationException {
+			QuestionPaper questionPaper) throws IOException, CsvValidationException {
 
 		String directory = Files.createTempDir().getAbsolutePath() + File.separator + AuthUtils.getCurrentUsername()
 				+ File.separator + UUID.randomUUID().toString();
@@ -1405,7 +1408,6 @@ public class TestConfigServiceImpl implements TestConfigService {
 				decoder.close();
 		}
 		return instituteAnalysisMetadata;
-
 
 	}
 }

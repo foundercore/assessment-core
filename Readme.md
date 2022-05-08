@@ -32,6 +32,9 @@
 >  Start Mongo Db on the server:
 `sudo systemctl start mongod`
 
+>  SSH to Mongo Db on the server:
+`ssh -i <pem_file_location> -L27016:localhost:27017  ec2-user@<ec2_public_ipv4>`
+
 	
 	
 
