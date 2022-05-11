@@ -196,7 +196,7 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
 		if (dto.getAssignedToStudent() != null && !dto.getAssignedToStudent().isEmpty()) {
 			assignment.setAssignedToStudent(dto.getAssignedToStudent());
 		}
-		if (StringUtils.isNotEmpty(dto.getPasscode())) {
+		if (dto.getPasscode() != null) {
 			assignment.setPasscode(dto.getPasscode());
 		}
 		if (StringUtils.isNotEmpty(dto.getDescription())) {
