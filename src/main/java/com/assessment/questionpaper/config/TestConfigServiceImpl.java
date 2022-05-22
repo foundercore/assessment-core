@@ -5,13 +5,16 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
@@ -43,6 +46,7 @@ import com.assessment.questionpaper.dto.QuestionPaperRequestDto;
 import com.assessment.questionpaper.dto.QuestionPaperRequestDto.TestControlParamsRequestDto;
 import com.assessment.questionpaper.dto.QuestionPaperResponseDto;
 import com.assessment.questionpaper.dto.QuestionPaperStatus;
+import com.assessment.questionpaper.dto.QuestionPaperType;
 import com.assessment.questionpaper.dto.SearchQuestionPaperDto;
 import com.assessment.questionpaper.entity.InstituteAnalysisMetadata;
 import com.assessment.questionpaper.entity.InstituteAnalysisMetadata.InstituteData;
@@ -652,7 +656,8 @@ public class TestConfigServiceImpl implements TestConfigService {
 						String.format("Section name missing. Paper id - %s, Section id - %s",
 								questionPaper.getId().getQuestionPaperId(), section.getId()));
 			}
-			if (questionPaper.getSubsections(section.getId()).isEmpty()
+			if (!QuestionPaperType.NMAT.name().equals(questionPaper.getType())
+					&& questionPaper.getSubsections(section.getId()).isEmpty()
 					&& (section.getQuestions() == null || section.getQuestions().isEmpty())) {
 				throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
 						String.format("Questions missing in section. Paper id - %s, Section - %s",
@@ -701,7 +706,7 @@ public class TestConfigServiceImpl implements TestConfigService {
 			}
 			names.add(section.getName().toLowerCase());
 		});
-		if (questions.isEmpty()) {
+		if (!QuestionPaperType.NMAT.name().equals(questionPaper.getType()) && questions.isEmpty()) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String
 					.format("Questions missing in paper. Paper id - %s", questionPaper.getId().getQuestionPaperId()));
 		}
@@ -1111,8 +1116,43 @@ public class TestConfigServiceImpl implements TestConfigService {
 			dto.setControlParam(qp.getControlParam().toResponseDto());
 		}
 		dto.setSectionOrder(qp.getSectionOrder());
-
-		if (qp.getSections() != null && detailed) {
+		if (qp.getType() != null && qp.getType().equals(QuestionPaperType.NMAT.name())) {
+			for (QuestionPaper.PaperSection ps : qp.getSections().values()) {
+				QuestionPaperResponseDto.PaperSectionResponseDto section = new QuestionPaperResponseDto.PaperSectionResponseDto();
+				section.setId(ps.getId());
+				section.setName(ps.getName());
+				section.setInstructions(ps.getInstructions());
+				section.setDurationInMinutes(ps.getDurationInMinutes());
+				section.setDifficultyLevel(ps.getDifficultyLevel());
+				section.setSubSectionOrder(ps.getSubSectionOrder());
+				// get section wise 36 question
+				// TODO Randomize it
+				List<Question> nmatQuestions = this.questionService.getAllNmatQuestion();
+				Map<String, List<Question>> questionsMappedByPassageId = nmatQuestions.stream()
+						.collect(Collectors.groupingBy(Question::getPassageId));
+				Collections.shuffle(nmatQuestions, new Random(3));
+				int questionOrder = 1;
+				for (Question tq : nmatQuestions) {
+					QuestionPaperResponseDto.TestQuestionResponseDto question = new QuestionPaperResponseDto.TestQuestionResponseDto();
+					question.setId(tq.getId().getQuestionId());
+					question.setPositiveMark(tq.getPositiveMark());
+					question.setNegativeMark(tq.getNegativeMark());
+					question.setSkipMark(tq.getSkipMark());
+					question.setName(tq.getName());
+					question.setPassageContent(tq.getPassageContent());
+					question.setType(tq.getType());
+					question.setTags(tq.getTags());
+					question.setSequenceNumber(questionOrder++);
+					section.addQuestion(question);
+					if (section.getQuestions().size() == 36) {
+						break;
+					}
+				}
+				section.updateQuestionCount();
+				/* add to response section if not a child section */
+				dto.addSection(section);
+			}
+		} else if (qp.getSections() != null && detailed) {
 
 			List<Question> questions = getQuestionPaperLinkedQuestions(qp.getId().getQuestionPaperId());
 			Map<String, Question> questionMap = new HashMap<>();

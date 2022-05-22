@@ -40,6 +40,10 @@ public interface QuestionService {
 
 	Question getQuestion(String questionId, boolean loadPassageContent);
 
+	List<Question> getAllNmatQuestion();
+
+	List<Question> getQuestionsByIds(List<QuestionId> questionIds);
+
 	void updateQuestion(Question question);
 
 	// List<Question> getQuestionsByTag(String tag);
