@@ -113,6 +113,10 @@ public class Question {
 		private String answerText;
 	}
 
+	public String getKeyForNamt() {
+		return getSubject() + this.getTopic() + getSubTopic() + getDifficultyLevel() + getPassageId();
+	}
+
 	public QuestionResponseDto getResponseDto() {
 
 		QuestionResponseDto responseDto = new QuestionResponseDto();

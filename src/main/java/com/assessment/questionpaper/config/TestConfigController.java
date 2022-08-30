@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.assessment.common.NMATConstants.Nmat_Sections;
 import com.assessment.question.dto.Question;
 import com.assessment.questionpaper.TestAssignmentService;
 import com.assessment.questionpaper.dto.QuestionPaperPaginatedResponse;
@@ -58,6 +59,11 @@ public class TestConfigController {
 	@GetMapping("/types")
 	public List<String> getConfiguredQuestionPaperTypes() {
 		return testConfigService.getQuestionPaperTypes();
+	}
+
+	@GetMapping("/nmat/sectionname")
+	public List<String> getNmatSectionname() {
+		return Nmat_Sections.getAllSectionNames();
 	}
 
 	@GetMapping("/types/all")

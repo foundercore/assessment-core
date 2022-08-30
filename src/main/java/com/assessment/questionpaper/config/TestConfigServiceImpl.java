@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -34,6 +33,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.assessment.common.FileUtility;
 import com.assessment.common.IFileDecoder;
+import com.assessment.common.NMATConstants;
+import com.assessment.common.NMATConstants.Nmat_Sections;
 import com.assessment.common.StringUtility;
 import com.assessment.common.TimeUtility;
 import com.assessment.common.XLReader;
@@ -1116,7 +1117,12 @@ public class TestConfigServiceImpl implements TestConfigService {
 			dto.setControlParam(qp.getControlParam().toResponseDto());
 		}
 		dto.setSectionOrder(qp.getSectionOrder());
-		if (qp.getType() != null && qp.getType().equals(QuestionPaperType.NMAT.name())) {
+		// making this as non reachable code as we will work on this later.
+		if (qp.getType() != null && qp.getType().equals(QuestionPaperType.NMAT.name()) && false) {
+			// get section wise 36 question
+			List<Question> nmatQuestions = this.questionService.getAllNmatQuestion();
+			Map<String, List<Question>> questionsMappedByPassageId = nmatQuestions.stream()
+					.collect(Collectors.groupingBy(Question::getKeyForNamt));
 			for (QuestionPaper.PaperSection ps : qp.getSections().values()) {
 				QuestionPaperResponseDto.PaperSectionResponseDto section = new QuestionPaperResponseDto.PaperSectionResponseDto();
 				section.setId(ps.getId());
@@ -1125,14 +1131,10 @@ public class TestConfigServiceImpl implements TestConfigService {
 				section.setDurationInMinutes(ps.getDurationInMinutes());
 				section.setDifficultyLevel(ps.getDifficultyLevel());
 				section.setSubSectionOrder(ps.getSubSectionOrder());
-				// get section wise 36 question
 				// TODO Randomize it
-				List<Question> nmatQuestions = this.questionService.getAllNmatQuestion();
-				Map<String, List<Question>> questionsMappedByPassageId = nmatQuestions.stream()
-						.collect(Collectors.groupingBy(Question::getPassageId));
-				Collections.shuffle(nmatQuestions, new Random(3));
+				List<Question> sectionQuestion = getNmatSectionQuestion(ps.getName(), questionsMappedByPassageId);
 				int questionOrder = 1;
-				for (Question tq : nmatQuestions) {
+				for (Question tq : sectionQuestion) {
 					QuestionPaperResponseDto.TestQuestionResponseDto question = new QuestionPaperResponseDto.TestQuestionResponseDto();
 					question.setId(tq.getId().getQuestionId());
 					question.setPositiveMark(tq.getPositiveMark());
@@ -1225,6 +1227,47 @@ public class TestConfigServiceImpl implements TestConfigService {
 			}
 		}
 		return dto;
+	}
+
+	private List<Question> getNmatSectionQuestion(String sectionName,
+			Map<String, List<Question>> questionsMappedByPassageId) {
+		List<Question> sectionQuestions = new ArrayList<>();
+		Map<String, Integer> questionsCatagorisation = null;
+		if (Nmat_Sections.QUANT_REASONING.getSectionName().equals(sectionName)) {
+			questionsCatagorisation = NMATConstants.NMAT_QUESTION_CATAGORIES
+					.get(Nmat_Sections.QUANT_REASONING.getSectionName());
+		} else if (Nmat_Sections.VERBAL_REASONING.getSectionName().equals(sectionName)) {
+			questionsCatagorisation = NMATConstants.NMAT_QUESTION_CATAGORIES
+					.get(Nmat_Sections.VERBAL_REASONING.getSectionName());
+		} else if (Nmat_Sections.LOGICAL_REASONING.getSectionName().equals(sectionName)) {
+			questionsCatagorisation = NMATConstants.NMAT_QUESTION_CATAGORIES
+					.get(Nmat_Sections.LOGICAL_REASONING.getSectionName());
+		}
+		if (questionsCatagorisation != null) {
+			// iterate over all the pre defined categorization
+			for (Entry<String, Integer> questionCatagory : questionsCatagorisation.entrySet()) {
+				// iterate over all the categorized questions
+				for (Entry<String, List<Question>> mappedQuestions : questionsMappedByPassageId.entrySet()) {
+					// if the catagory starts with the predefined key proceed
+					if (mappedQuestions.getKey().startsWith(questionCatagory.getKey())) {
+						List<Question> shuffledQuestion = mappedQuestions.getValue();
+						Collections.shuffle(shuffledQuestion);
+
+						if (shuffledQuestion.size() > questionCatagory.getValue()) {
+							for (int i = 0; i < questionCatagory.getValue(); i++) {
+								Question question = shuffledQuestion.get(i);
+								sectionQuestions.add(question);
+								mappedQuestions.getValue().remove(question);
+							}
+						} else {
+							throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String
+									.format("Insufficiant questions for section : " + sectionName + " in NMAT test."));
+						}
+					}
+				}
+			}
+		}
+		return sectionQuestions;
 	}
 
 	@Override
