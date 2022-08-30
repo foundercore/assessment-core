@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
@@ -31,6 +33,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.assessment.common.FileUtility;
 import com.assessment.common.IFileDecoder;
+import com.assessment.common.NMATConstants;
+import com.assessment.common.NMATConstants.Nmat_Sections;
 import com.assessment.common.StringUtility;
 import com.assessment.common.TimeUtility;
 import com.assessment.common.XLReader;
@@ -43,6 +47,7 @@ import com.assessment.questionpaper.dto.QuestionPaperRequestDto;
 import com.assessment.questionpaper.dto.QuestionPaperRequestDto.TestControlParamsRequestDto;
 import com.assessment.questionpaper.dto.QuestionPaperResponseDto;
 import com.assessment.questionpaper.dto.QuestionPaperStatus;
+import com.assessment.questionpaper.dto.QuestionPaperType;
 import com.assessment.questionpaper.dto.SearchQuestionPaperDto;
 import com.assessment.questionpaper.entity.InstituteAnalysisMetadata;
 import com.assessment.questionpaper.entity.InstituteAnalysisMetadata.InstituteData;
@@ -285,7 +290,6 @@ public class TestConfigServiceImpl implements TestConfigService {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
 					String.format("totalMarks %s can't be negative/zero", dto.getTotalMarks()));
 		}
-
 
 		if (StringUtils.isNotEmpty(dto.getName())) {
 			questionPaper.setName(dto.getName());
@@ -653,7 +657,8 @@ public class TestConfigServiceImpl implements TestConfigService {
 						String.format("Section name missing. Paper id - %s, Section id - %s",
 								questionPaper.getId().getQuestionPaperId(), section.getId()));
 			}
-			if (questionPaper.getSubsections(section.getId()).isEmpty()
+			if (!QuestionPaperType.NMAT.name().equals(questionPaper.getType())
+					&& questionPaper.getSubsections(section.getId()).isEmpty()
 					&& (section.getQuestions() == null || section.getQuestions().isEmpty())) {
 				throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
 						String.format("Questions missing in section. Paper id - %s, Section - %s",
@@ -702,7 +707,7 @@ public class TestConfigServiceImpl implements TestConfigService {
 			}
 			names.add(section.getName().toLowerCase());
 		});
-		if (questions.isEmpty()) {
+		if (!QuestionPaperType.NMAT.name().equals(questionPaper.getType()) && questions.isEmpty()) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String
 					.format("Questions missing in paper. Paper id - %s", questionPaper.getId().getQuestionPaperId()));
 		}
@@ -951,6 +956,13 @@ public class TestConfigServiceImpl implements TestConfigService {
 	}
 
 	@Override
+	public List<String> getQuestionPaperTypes() {
+		Query query = new Query();
+		query.addCriteria(Criteria.where("_id.tenantId").is(AuthUtils.getCurrentTenantId()));
+		return mongoTemplate.findDistinct(query, "type", QuestionPaper.COLLECTION_NAME, String.class);
+	}
+
+	@Override
 	public void updateTestControlParams(String paperId, TestControlParamsRequestDto controlParams) {
 		QuestionPaperId id = new QuestionPaperId();
 		id.setTenantId(AuthUtils.getCurrentTenantId());
@@ -1067,13 +1079,11 @@ public class TestConfigServiceImpl implements TestConfigService {
 						.parseStringToOptionalDouble(String.valueOf(record.get(sectionName.getKey() + " Percentile")));
 				if (sectionMark != null) {
 					if (percentileScoreCard.getSectionLevelPercentile().get(sectionName.getValue()) != null) {
-						percentileScoreCard.getSectionLevelPercentile().get(sectionName.getValue())
-								.put(sectionMark, sectionPercentileMark);
-					}else {
-						percentileScoreCard.getSectionLevelPercentile().put(sectionName.getValue(),
-								new HashMap<>());
-						percentileScoreCard.getSectionLevelPercentile().get(sectionName.getValue())
-								.put(sectionMark,
+						percentileScoreCard.getSectionLevelPercentile().get(sectionName.getValue()).put(sectionMark,
+								sectionPercentileMark);
+					} else {
+						percentileScoreCard.getSectionLevelPercentile().put(sectionName.getValue(), new HashMap<>());
+						percentileScoreCard.getSectionLevelPercentile().get(sectionName.getValue()).put(sectionMark,
 								sectionPercentileMark);
 					}
 				}
@@ -1084,8 +1094,8 @@ public class TestConfigServiceImpl implements TestConfigService {
 		return percentileScoreCard;
 
 	}
-	private QuestionPaperResponseDto buildQuestionPaperResponse(QuestionPaper qp, boolean detailed) {
 
+	private QuestionPaperResponseDto buildQuestionPaperResponse(QuestionPaper qp, boolean detailed) {
 
 		QuestionPaperResponseDto dto = new QuestionPaperResponseDto();
 		dto.setQuestionPaperId(qp.getId().getQuestionPaperId());
@@ -1107,8 +1117,44 @@ public class TestConfigServiceImpl implements TestConfigService {
 			dto.setControlParam(qp.getControlParam().toResponseDto());
 		}
 		dto.setSectionOrder(qp.getSectionOrder());
-
-		if (qp.getSections() != null && detailed) {
+		// making this as non reachable code as we will work on this later.
+		if (qp.getType() != null && qp.getType().equals(QuestionPaperType.NMAT.name()) && false) {
+			// get section wise 36 question
+			List<Question> nmatQuestions = this.questionService.getAllNmatQuestion();
+			Map<String, List<Question>> questionsMappedByPassageId = nmatQuestions.stream()
+					.collect(Collectors.groupingBy(Question::getKeyForNamt));
+			for (QuestionPaper.PaperSection ps : qp.getSections().values()) {
+				QuestionPaperResponseDto.PaperSectionResponseDto section = new QuestionPaperResponseDto.PaperSectionResponseDto();
+				section.setId(ps.getId());
+				section.setName(ps.getName());
+				section.setInstructions(ps.getInstructions());
+				section.setDurationInMinutes(ps.getDurationInMinutes());
+				section.setDifficultyLevel(ps.getDifficultyLevel());
+				section.setSubSectionOrder(ps.getSubSectionOrder());
+				// TODO Randomize it
+				List<Question> sectionQuestion = getNmatSectionQuestion(ps.getName(), questionsMappedByPassageId);
+				int questionOrder = 1;
+				for (Question tq : sectionQuestion) {
+					QuestionPaperResponseDto.TestQuestionResponseDto question = new QuestionPaperResponseDto.TestQuestionResponseDto();
+					question.setId(tq.getId().getQuestionId());
+					question.setPositiveMark(tq.getPositiveMark());
+					question.setNegativeMark(tq.getNegativeMark());
+					question.setSkipMark(tq.getSkipMark());
+					question.setName(tq.getName());
+					question.setPassageContent(tq.getPassageContent());
+					question.setType(tq.getType());
+					question.setTags(tq.getTags());
+					question.setSequenceNumber(questionOrder++);
+					section.addQuestion(question);
+					if (section.getQuestions().size() == 36) {
+						break;
+					}
+				}
+				section.updateQuestionCount();
+				/* add to response section if not a child section */
+				dto.addSection(section);
+			}
+		} else if (qp.getSections() != null && detailed) {
 
 			List<Question> questions = getQuestionPaperLinkedQuestions(qp.getId().getQuestionPaperId());
 			Map<String, Question> questionMap = new HashMap<>();
@@ -1181,6 +1227,47 @@ public class TestConfigServiceImpl implements TestConfigService {
 			}
 		}
 		return dto;
+	}
+
+	private List<Question> getNmatSectionQuestion(String sectionName,
+			Map<String, List<Question>> questionsMappedByPassageId) {
+		List<Question> sectionQuestions = new ArrayList<>();
+		Map<String, Integer> questionsCatagorisation = null;
+		if (Nmat_Sections.QUANT_REASONING.getSectionName().equals(sectionName)) {
+			questionsCatagorisation = NMATConstants.NMAT_QUESTION_CATAGORIES
+					.get(Nmat_Sections.QUANT_REASONING.getSectionName());
+		} else if (Nmat_Sections.VERBAL_REASONING.getSectionName().equals(sectionName)) {
+			questionsCatagorisation = NMATConstants.NMAT_QUESTION_CATAGORIES
+					.get(Nmat_Sections.VERBAL_REASONING.getSectionName());
+		} else if (Nmat_Sections.LOGICAL_REASONING.getSectionName().equals(sectionName)) {
+			questionsCatagorisation = NMATConstants.NMAT_QUESTION_CATAGORIES
+					.get(Nmat_Sections.LOGICAL_REASONING.getSectionName());
+		}
+		if (questionsCatagorisation != null) {
+			// iterate over all the pre defined categorization
+			for (Entry<String, Integer> questionCatagory : questionsCatagorisation.entrySet()) {
+				// iterate over all the categorized questions
+				for (Entry<String, List<Question>> mappedQuestions : questionsMappedByPassageId.entrySet()) {
+					// if the catagory starts with the predefined key proceed
+					if (mappedQuestions.getKey().startsWith(questionCatagory.getKey())) {
+						List<Question> shuffledQuestion = mappedQuestions.getValue();
+						Collections.shuffle(shuffledQuestion);
+
+						if (shuffledQuestion.size() > questionCatagory.getValue()) {
+							for (int i = 0; i < questionCatagory.getValue(); i++) {
+								Question question = shuffledQuestion.get(i);
+								sectionQuestions.add(question);
+								mappedQuestions.getValue().remove(question);
+							}
+						} else {
+							throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String
+									.format("Insufficiant questions for section : " + sectionName + " in NMAT test."));
+						}
+					}
+				}
+			}
+		}
+		return sectionQuestions;
 	}
 
 	@Override
@@ -1329,8 +1416,7 @@ public class TestConfigServiceImpl implements TestConfigService {
 	}
 
 	public InstituteAnalysisMetadata initReadingInstituteAnalysisMetadataFile(MultipartFile file,
-			QuestionPaper questionPaper)
-			throws IOException, CsvValidationException {
+			QuestionPaper questionPaper) throws IOException, CsvValidationException {
 
 		String directory = Files.createTempDir().getAbsolutePath() + File.separator + AuthUtils.getCurrentUsername()
 				+ File.separator + UUID.randomUUID().toString();
@@ -1405,7 +1491,6 @@ public class TestConfigServiceImpl implements TestConfigService {
 				decoder.close();
 		}
 		return instituteAnalysisMetadata;
-
 
 	}
 }

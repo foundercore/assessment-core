@@ -49,6 +49,7 @@ import com.assessment.question.dto.QuestionType;
 import com.assessment.question.dto.SearchQuestion;
 import com.assessment.questionpaper.config.TestConfigRepository;
 import com.assessment.questionpaper.dto.QuestionPaperStatus;
+import com.assessment.questionpaper.dto.QuestionPaperType;
 import com.assessment.questionpaper.entity.QuestionPaper;
 import com.assessment.questionpaper.entity.QuestionPaper.PaperSection;
 import com.assessment.questionpaper.entity.QuestionPaperId;
@@ -413,6 +414,25 @@ public class QuestionServiceImpl implements QuestionService {
 			passageRepository.findById(pid).ifPresent(passage -> question.setPassageContent(passage.getContent()));
 		}
 		return question;
+	}
+
+	@Override
+	public List<Question> getAllNmatQuestion() {
+		Query query = new Query();
+		query.addCriteria(Criteria.where("tags").in(QuestionPaperType.NMAT.questionPaperType()));
+		List<Question> questions = mongoTemplate.find(query, Question.class);
+
+		return questions;
+	}
+
+	@Override
+	public List<Question> getQuestionsByIds(List<QuestionId> questionIds) {
+		Query query = new Query();
+		query.addCriteria(Criteria.where("_id").in(questionIds));
+
+		List<Question> questions = mongoTemplate.find(query, Question.class);
+
+		return questions;
 	}
 
 	private String savePassageContent(String passageContent) {

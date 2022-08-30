@@ -30,6 +30,7 @@ import com.assessment.iam.services.UserService;
 import com.assessment.question.QuestionService;
 import com.assessment.question.dto.DifficultyLevel;
 import com.assessment.question.dto.Question;
+import com.assessment.question.dto.QuestionId;
 import com.assessment.question.dto.QuestionType;
 import com.assessment.questionpaper.config.TestConfigService;
 import com.assessment.questionpaper.dto.AnswerState;
@@ -47,6 +48,8 @@ import com.assessment.questionpaper.entity.AssignmentId;
 import com.assessment.questionpaper.entity.Metric;
 import com.assessment.questionpaper.entity.QuestionPaper;
 import com.assessment.questionpaper.entity.Submission;
+import com.assessment.questionpaper.entity.Submission.Answer;
+import com.assessment.questionpaper.entity.Submission.Section;
 import com.assessment.questionpaper.entity.SubmissionId;
 import com.assessment.questionpaper.report.TestSubmissionRepository;
 import com.assessment.studentbatch.StudentBatch;
@@ -558,8 +561,13 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
 		boolean enrichQuestionDetails = submission.isSubmitted();
 		Map<String, Question> questionMap = new HashMap<>();
 		if (enrichQuestionDetails) {
-			List<Question> questions = testConfigService
-					.getQuestionPaperLinkedQuestions(getAssignmentEntity(submission.getAssignmentId()).getTestId());
+			List<QuestionId> questionIds = new ArrayList<>();
+			for (Section section : submission.getSections().values()) {
+				for (Answer answer : section.getAnswers().values()) {
+					questionIds.add(new QuestionId(answer.getQuestionId(), AuthUtils.getCurrentTenantId()));
+				}
+			}
+			List<Question> questions = questionService.getQuestionsByIds(questionIds);
 			if (questions != null) {
 				questions.forEach(q -> questionMap.put(q.getId().getQuestionId(), q));
 			}
@@ -624,7 +632,8 @@ public class TestAssignmentServiceImpl implements TestAssignmentService {
 							dto.setTopic(questionMap.get(qid).getTopic());
 							dto.setSubTopic(questionMap.get(qid).getSubTopic());
 							dto.setDifficultyLevel(questionMap.get(qid).getDifficultyLevel());
-							dto.setSequenceNumber(questionDetails.get(qid).getSequenceNumber());
+							if (questionDetails.get(qid) != null)
+								dto.setSequenceNumber(questionDetails.get(qid).getSequenceNumber());
 							if (questionMap.get(qid).getOptions() != null) {
 								List<SubmissionResponseDto.InputOption> options = new ArrayList<>();
 								for (Question.QuestionOption op : questionMap.get(qid).getOptions()) {
