@@ -431,7 +431,14 @@ public class QuestionServiceImpl implements QuestionService {
 		query.addCriteria(Criteria.where("_id").in(questionIds));
 
 		List<Question> questions = mongoTemplate.find(query, Question.class);
-
+		for (Question question : questions) {
+			if (StringUtils.isNotEmpty(question.getPassageId())) {
+				PassageId pid = new PassageId();
+				pid.setTenantId(question.getId().getTenantId());
+				pid.setPassageId(question.getPassageId());
+				passageRepository.findById(pid).ifPresent(passage -> question.setPassageContent(passage.getContent()));
+			}
+		}
 		return questions;
 	}
 
